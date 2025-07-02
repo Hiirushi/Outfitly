@@ -1,6 +1,6 @@
 const Item = require("../models/item.model.js");
 
-const getItems = async ( res) => {
+const getItems = async ( req, res) => {
   try {
     const items = await Item.find({});
     res.status(200).json(items);
