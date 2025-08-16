@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -39,6 +41,14 @@ mongoose
   .then(() => {
     app.listen(3000, () => {
       console.log("Node API app is running on port 3000");
+      
+      // Debug: Check if environment variables are loaded
+      console.log("\n=== Environment Variables Check ===");
+      console.log("AWS_REGION:", process.env.AWS_REGION);
+      console.log("AWS_BUCKET_NAME:", process.env.AWS_BUCKET_NAME);
+      console.log("AWS_ACCESS_KEY_ID:", process.env.AWS_ACCESS_KEY_ID ? "✓ Set" : "✗ Not set");
+      console.log("AWS_SECRET_ACCESS_KEY:", process.env.AWS_SECRET_ACCESS_KEY ? "✓ Set" : "✗ Not set");
+      console.log("=====================================\n");
     });
     console.log("Connected to MongoDB");
   })
