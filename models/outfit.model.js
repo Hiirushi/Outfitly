@@ -10,6 +10,10 @@ const outfitSchema = new mongoose.Schema(
       type: String,
       required: [true, "occasion is required"],
     },
+    image: {
+      type: String,
+      required: [true, "Image is required"],
+    },
     createdDate: {
       type: Date,
       default: Date.now,
