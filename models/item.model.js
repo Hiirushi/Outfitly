@@ -6,10 +6,6 @@ const itemSchema = mongoose.Schema(
       type: String,
       required: [false],
     },
-    type: {
-      type: String,
-      required: [true, "Type is required"],
-    },
     color: {
       type: String,
       required: [true, "Color is required"],
@@ -33,6 +29,11 @@ const itemSchema = mongoose.Schema(
     dateAdded: {
       type: Date,
       default: Date.now,
+    },
+    itemType: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "ItemType",
+      required: [true, "ItemType is required"],
     },
     user: {
       type: mongoose.Schema.Types.ObjectId,
