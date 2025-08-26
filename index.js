@@ -8,6 +8,8 @@ const userRoutes = require("./routes/user.route.js");
 const itemRoutes = require("./routes/item.route.js");
 const outfitRoutes = require("./routes/outfit.route.js");
 const outfitItemRoutes = require("./routes/outfitItem.route.js");
+const itemTypeRoutes = require("./routes/itemType.route.js");
+
 
 //middleware
 app.use(express.json());
@@ -26,6 +28,7 @@ app.use("/users", userRoutes);
 app.use("/items", itemRoutes);
 app.use("/outfits", outfitRoutes);
 app.use("/outfitItems", outfitItemRoutes);
+app.use("/itemType", itemTypeRoutes);
 
 // Basic route
 app.get("/", (req, res) => {
