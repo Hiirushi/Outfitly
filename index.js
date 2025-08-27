@@ -9,7 +9,7 @@ const itemRoutes = require("./routes/item.route.js");
 const outfitRoutes = require("./routes/outfit.route.js");
 const outfitItemRoutes = require("./routes/outfitItem.route.js");
 const itemTypeRoutes = require("./routes/itemType.route.js");
-
+const weatherRoutes = require("./routes/weather.route.js");
 
 //middleware
 app.use(express.json());
@@ -29,6 +29,7 @@ app.use("/items", itemRoutes);
 app.use("/outfits", outfitRoutes);
 app.use("/outfitItems", outfitItemRoutes);
 app.use("/itemType", itemTypeRoutes);
+app.use("/api/weather", weatherRoutes);
 
 // Basic route
 app.get("/", (req, res) => {
