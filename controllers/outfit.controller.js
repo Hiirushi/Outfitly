@@ -1,4 +1,5 @@
-const Outfit = require("../models/Outfit.model");
+const Outfit = require("../models/outfit.model");
+const Item = require("../models/item.model");
 
 // GET all outfits
 const getOutfits = async (req, res) => {
@@ -37,6 +38,7 @@ const createOutfit = async (req, res) => {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
+    // Create outfit
     const outfit = await Outfit.create({
       name,
       occasion,
@@ -45,29 +47,25 @@ const createOutfit = async (req, res) => {
       items, // expects array of { item, x, y, width, height, rotation, zIndex }
     });
 
-    res.status(201).json(outfit);
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ message: error.message });
-  }
-};
+    // Increment usageCount by 1 for each unique item used in the outfit
+    if (items && items.length > 0) {
+      const itemIds = items.map((it) => it.item).filter(Boolean).map(String);
+      const uniqueItemIds = [...new Set(itemIds)];
 
-// UPDATE outfit
-const updateOutfit = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const outfit = await Outfit.findByIdAndUpdate(id, req.body, {
-      new: true,
-      runValidators: true,
-    }).populate("items.item");
+      // Build a list of update operations that increment usageCount by 1
+      const usageIncrement = uniqueItemIds.map((id) => ({
+        updateOne: {
+          filter: { _id: id },
+          update: { $inc: { usageCount: 1 } },
+        },
+      }));
 
-    if (!outfit) {
-      return res
-        .status(404)
-        .json({ message: `Outfit not found with ID ${id}` });
+      if (usageIncrement.length > 0) {
+        await Item.bulkWrite(usageIncrement);
+      }
     }
 
-    res.status(200).json(outfit);
+    res.status(201).json(outfit);
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: error.message });
@@ -95,6 +93,5 @@ module.exports = {
   getOutfits,
   getSingleOutfit,
   createOutfit,
-  updateOutfit,
   deleteOutfit,
 };
