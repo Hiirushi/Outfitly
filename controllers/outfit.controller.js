@@ -49,7 +49,10 @@ const createOutfit = async (req, res) => {
 
     // Increment usageCount by 1 for each unique item used in the outfit
     if (items && items.length > 0) {
-      const itemIds = items.map((it) => it.item).filter(Boolean).map(String);
+      const itemIds = items
+        .map((it) => it.item)
+        .filter(Boolean)
+        .map(String);
       const uniqueItemIds = [...new Set(itemIds)];
 
       // Build a list of update operations that increment usageCount by 1
