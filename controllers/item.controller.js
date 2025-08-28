@@ -39,17 +39,24 @@ const createItem = async (req, res) => {
     // Create item with uploaded image URL
     const itemData = {
       ...req.body,
-      image: req.file.location // S3 URL
+      image: req.file.location, // S3 URL
+      backgroundRemoved: req.file.backgroundRemoved || false // Track if background was removed
     };
 
     console.log('Creating item with data:', itemData);
     const item = await Item.create(itemData);
     
     console.log('Item created successfully:', item._id);
-    res.status(201).json(item);
+    console.log('Background removal status:', req.file.backgroundRemoved);
+    
+    res.status(201).json({
+      ...item.toObject(),
+      backgroundRemoved: req.file.backgroundRemoved
+    });
   } catch (error) {
     console.log('Error creating item:', error.message);
     
+    // Clean up uploaded file if item creation fails
     if (req.file && req.file.key) {
       try {
         const deleteCommand = new DeleteObjectCommand({
@@ -82,7 +89,10 @@ const updateItem = async (req, res) => {
     // If new image is uploaded
     if (req.file && req.file.location) {
       console.log('New image uploaded:', req.file.location);
+      console.log('Background removal status:', req.file.backgroundRemoved);
+      
       updateData.image = req.file.location;
+      updateData.backgroundRemoved = req.file.backgroundRemoved || false;
       
       // Delete old image from S3 if it exists
       if (existingItem.image) {
@@ -105,10 +115,15 @@ const updateItem = async (req, res) => {
 
     const item = await Item.findByIdAndUpdate(id, updateData, { new: true });
     console.log('Item updated successfully');
-    res.status(200).json(item);
+    
+    res.status(200).json({
+      ...item.toObject(),
+      backgroundRemoved: req.file ? req.file.backgroundRemoved : item.backgroundRemoved
+    });
   } catch (error) {
     console.log('Error updating item:', error.message);
     
+    // Clean up uploaded file if update fails
     if (req.file && req.file.key) {
       try {
         const deleteCommand = new DeleteObjectCommand({
