@@ -1,28 +1,35 @@
-const Outfit = require("../models/Outfit.model");
+const Outfit = require("../models/outfit.model");
+const Item = require("../models/item.model");
 
+// GET all outfits
 const getOutfits = async (req, res) => {
   try {
-    const outfits = await Outfit.find({});
+    const outfits = await Outfit.find({})
+      .populate("items.item") // populate item details
+      .sort({ createdAt: -1 });
+
     res.status(200).json(outfits);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
+// GET single outfit by ID
 const getSingleOutfit = async (req, res) => {
   try {
-    const outfit = await Outfit.findById(req.params.id);
+    const outfit = await Outfit.findById(req.params.id).populate("items.item");
     if (!outfit) {
       return res.status(404).json({ message: "Outfit not found" });
     }
     res.status(200).json(outfit);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
+// CREATE new outfit
 const createOutfit = async (req, res) => {
   try {
     const { name, occasion, plannedDate, user, items } = req.body;
@@ -63,27 +70,12 @@ const createOutfit = async (req, res) => {
 
     res.status(201).json(outfit);
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).json({ message: error.message });
   }
 };
 
-const updateOutfit = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const outfit = await Outfit.findByIdAndUpdate(id, req.body, { new: true });
-    if (!outfit) {
-      return res
-        .status(404)
-        .json({ message: `Outfit not found with ID ${id}` });
-    }
-    res.status(200).json(outfit);
-  } catch (error) {
-    console.log(error.message);
-    res.status(500).json({ message: error.message });
-  }
-};
-
+// DELETE outfit
 const deleteOutfit = async (req, res) => {
   try {
     const { id } = req.params;
@@ -95,7 +87,7 @@ const deleteOutfit = async (req, res) => {
     }
     res.status(200).json({ message: "Outfit deleted successfully" });
   } catch (error) {
-    console.log(error.message);
+    console.error(error.message);
     res.status(500).json({ message: error.message });
   }
 };
@@ -104,6 +96,5 @@ module.exports = {
   getOutfits,
   getSingleOutfit,
   createOutfit,
-  updateOutfit,
   deleteOutfit,
 };

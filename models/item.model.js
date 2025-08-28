@@ -74,6 +74,11 @@ const itemSchema = mongoose.Schema(
         message: "{VALUE} is not a valid material",
       },
     },
+    usageCount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     dateAdded: {
       type: Date,
       default: Date.now,
