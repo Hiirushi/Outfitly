@@ -6,18 +6,37 @@ const outfitSchema = new mongoose.Schema(
       type: String,
       required: [true, "Name is required"],
     },
-    occassion: {
+    occasion: {
       type: String,
-      required: [true, "occasion is required"],
-    },
-    image: {
-      type: String,
-      required: [true, "Image is required"],
+      required: [true, "Occasion is required"],
     },
     createdDate: {
       type: Date,
       default: Date.now,
     },
+    plannedDate: {
+      type: Date,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    items: [
+      {
+        item: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Item",
+          required: true,
+        },
+        x: { type: Number, required: true }, // canvas x coordinate
+        y: { type: Number, required: true }, // canvas y coordinate
+        width: { type: Number }, // optional, in case user resizes item
+        height: { type: Number }, // optional
+        rotation: { type: Number }, // optional for canvas rotation
+        zIndex: { type: Number }, // optional for stacking order
+      },
+    ],
   },
   {
     timestamps: true,
