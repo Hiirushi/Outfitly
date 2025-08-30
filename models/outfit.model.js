@@ -8,7 +8,6 @@ const outfitSchema = new mongoose.Schema(
     },
     occasion: {
       type: String,
-      required: [true, "Occasion is required"],
     },
     createdDate: {
       type: Date,
