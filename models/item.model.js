@@ -1,102 +1,58 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-const itemSchema = mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [false],
-    },
-    color: {
-      type: String,
-      required: [true, "Color is required"],
-      enum: {
-        values: [
-          "Red",
-          "Blue",
-          "Green",
-          "Yellow",
-          "Black",
-          "White",
-          "Gray",
-          "Brown",
-          "Pink",
-          "Purple",
-          "Orange",
-          "Beige",
-        ],
-        message: "{VALUE} is not a valid color",
-      },
-    },
-    dressCode: {
-      type: String,
-      required: [true, "Dress code is required"],
-      enum: {
-        values: [
-          "Casual",
-          "Business Casual",
-          "Business Formal",
-          "Formal",
-          "Semi-Formal",
-          "Party",
-          "Athletic",
-          "Beachwear",
-          "Other",
-        ],
-        message: "{VALUE} is not a valid dress code",
-      },
-    },
-    image: {
-      type: String,
-      required: [true, "Image is required"],
-    },
-    brand: {
-      type: String,
-      required: [true, "Brand is required"],
-    },
-    material: {
-      type: String,
-      required: [true, "Material is required"],
-      enum: {
-        values: [
-          "Cotton",
-          "Linen",
-          "Silk",
-          "Wool",
-          "Polyester",
-          "Nylon",
-          "Denim",
-          "Leather",
-          "Velvet",
-          "Satin",
-          "Chiffon",
-          "Other",
-        ],
-        message: "{VALUE} is not a valid material",
-      },
-    },
-    usageCount: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    dateAdded: {
-      type: Date,
-      default: Date.now,
-    },
-    itemType: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "ItemType",
-      required: [true, "ItemType is required"],
-    },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-    },
+const itemSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, "Please enter item name"],
+    trim: true,
   },
-  {
-    timestamps: true,
-  }
-);
+  color: {
+    type: String,
+    required: false,
+    trim: true,
+  },
+  dressCode: {
+    type: String,
+    required: false,
+    trim: true,
+  },
+  brand: {
+    type: String,
+    required: false,
+    trim: true,
+  },
+  material: {
+    type: String,
+    required: false,
+    trim: true,
+  },
+  itemType: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'ItemType', // References the ItemType model
+    required: false,
+    index: true,
+  },
+  image: {
+    type: String,
+    required: false,
+  },
+  backgroundRemoved: {
+    type: Boolean,
+    default: false,
+  },
+  // Proper reference to User model
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // References the User model
+    required: [true, "User is required"],
+    index: true, // Add index for better query performance
+  },
+}, {
+  timestamps: true,
+});
+
+itemSchema.index({ user: 1, createdAt: -1 });
 
 const Item = mongoose.model("Item", itemSchema);
+
 module.exports = Item;
