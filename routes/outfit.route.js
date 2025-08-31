@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const { authenticateToken } = require('../middleware/auth');
 
 const {
   getOutfits,
@@ -8,9 +9,10 @@ const {
   deleteOutfit,
 } = require("../controllers/outfit.controller");
 
-router.get("/", getOutfits);
-router.get("/:id", getSingleOutfit);
-router.post("/", createOutfit);
-router.delete("/:id", deleteOutfit);
+// All outfit routes require authentication
+router.get("/", authenticateToken, getOutfits);
+router.get("/:id", authenticateToken, getSingleOutfit);
+router.post("/", authenticateToken, createOutfit);
+router.delete("/:id", authenticateToken, deleteOutfit);
 
 module.exports = router;

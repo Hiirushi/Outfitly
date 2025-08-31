@@ -21,6 +21,7 @@ const outfitSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true, // Add index for better query performance
     },
     items: [
       {
@@ -42,6 +43,9 @@ const outfitSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Add compound index for user-specific queries with sorting
+outfitSchema.index({ user: 1, createdAt: -1 });
 
 const Outfit = mongoose.model("Outfit", outfitSchema);
 module.exports = Outfit;
