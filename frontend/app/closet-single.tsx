@@ -91,10 +91,7 @@ const ClosetSingle = () => {
         <View style={styles.headerBackground} />
         <View style={styles.headerContent}>
           <View style={styles.headerRow}>
-            <TouchableOpacity
-              style={styles.backButton}
-              onPress={() => router.back()}
-            >
+            <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
               <Ionicons name="arrow-back" size={16} color="#333" />
             </TouchableOpacity>
           </View>
@@ -181,22 +178,6 @@ const ClosetSingle = () => {
                 <Text style={styles.analyticsValue}>{item.usageCount || 0}</Text>
                 <Text style={styles.analyticsLabel}>Times Worn</Text>
               </View>
-
-              <View style={styles.analyticsItem}>
-                <View style={[styles.analyticsIcon, styles.calendarIcon]}>
-                  <Ionicons name="calendar" size={24} color="white" />
-                </View>
-                <Text style={styles.analyticsValue}>5</Text>
-                <Text style={styles.analyticsLabel}>In Outfits</Text>
-              </View>
-
-              <View style={styles.analyticsItem}>
-                <View style={[styles.analyticsIcon, styles.paletteIcon]}>
-                  <Ionicons name="color-palette" size={24} color="white" />
-                </View>
-                <Text style={styles.analyticsValue}>8</Text>
-                <Text style={styles.analyticsLabel}>Style Matches</Text>
-              </View>
             </View>
           </View>
         </View>
@@ -263,6 +244,7 @@ const styles = StyleSheet.create({
   backButton: {
     width: 32,
     height: 32,
+    marginTop: 20,
     borderRadius: 16,
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     alignItems: 'center',
@@ -273,8 +255,8 @@ const styles = StyleSheet.create({
       height: 1,
     },
     shadowOpacity: 0.1,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowRadius: 2,
+    elevation: 1,
   },
 
   // Content
@@ -304,7 +286,7 @@ const styles = StyleSheet.create({
   },
   itemImage: {
     width: '100%',
-    aspectRatio: 11/12,
+    aspectRatio: 11 / 12,
   },
 
   // Info Card

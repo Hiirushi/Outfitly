@@ -212,13 +212,8 @@ export default function Home() {
           </View>
 
           <View style={styles.statItem}>
-            <Text style={[styles.statValue, styles.outfitsValue]}>12</Text>
-            <Text style={styles.statLabel}>OUTFITS</Text>
-          </View>
-
-          <View style={styles.statItem}>
-            <Text style={[styles.statValue, styles.weekValue]}>5</Text>
-            <Text style={styles.statLabel}>THIS WEEK</Text>
+            <Text style={styles.statValue}>{categories.length}</Text>
+            <Text style={styles.statLabel}>CATEGORIES</Text>
           </View>
         </View>
       </View>
