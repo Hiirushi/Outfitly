@@ -19,7 +19,7 @@ app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // CORS configuration for React Native
 app.use(cors({
-  origin: ["http://localhost:8081", "http://localhost:19006", "exp://localhost:19000"], // Expo dev server URLs
+  origin: ["http://localhost:8081", "http://192.168.8.124:19006", "exp://192.168.8.124:19000"], // Expo dev server URLs
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]

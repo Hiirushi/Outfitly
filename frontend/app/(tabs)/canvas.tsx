@@ -17,9 +17,7 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ReactDatePicker from 'react-datepicker';
-import DatePicker from 'react-native-date-picker';
-import 'react-datepicker/dist/react-datepicker.css'; 
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import ItemsPopUp from '@/components/itemsPopUp';
@@ -51,11 +49,9 @@ export default function Canvas() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [saving, setSaving] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
-  const [datePickerVisible, setDatePickerVisible] = useState(false); // For native platforms
-  const [webDate, setWebDate] = useState<Date | null>(null); // For web
-
+  const [datePickerVisible, setDatePickerVisible] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [cameFromCalendar, setCameFromCalendar] = useState(false);
-  // Track if this is the first navigation to canvas
   const [hasInitialized, setHasInitialized] = useState(false);
 
   const screenWidth = Dimensions.get('window').width;
@@ -70,10 +66,8 @@ export default function Canvas() {
   useFocusEffect(
     useCallback(() => {
       console.log('Canvas focused with params:', params);
-      console.log('Params plannedDate:', params.plannedDate);
-      console.log('Current plannedDate state:', plannedDate);
 
-      // Always reset these modal states when screen comes into focus
+      // Always reset modal states when screen comes into focus
       setModalVisible(false);
       setSaveModalVisible(false);
       setSaving(false);
@@ -82,13 +76,10 @@ export default function Canvas() {
       const incomingPlannedDate = params.plannedDate;
       const hasPlannedDateParam = incomingPlannedDate && typeof incomingPlannedDate === 'string';
 
-      console.log('hasPlannedDateParam:', hasPlannedDateParam);
-      console.log('hasInitialized:', hasInitialized);
-
       if (hasPlannedDateParam) {
         // Always set the planned date from params
-        console.log('Setting planned date from params:', incomingPlannedDate);
         setPlannedDate(incomingPlannedDate as string);
+        setSelectedDate(new Date(incomingPlannedDate as string));
         setCameFromCalendar(true);
 
         // Auto-open items popup if specified
@@ -103,13 +94,12 @@ export default function Canvas() {
           router.replace('/canvas');
         }, 100);
       } else if (hasInitialized && !hasPlannedDateParam && !cameFromCalendar) {
-        // User navigated to canvas directly without date parameter (refresh, direct navigation, etc.)
-        // Reset everything including planned date
-        console.log('Direct navigation to canvas - resetting all data');
+        // User navigated to canvas directly - reset everything
         setPlannedDate('');
         setDroppedItems([]);
         setOutfitName('');
         setOutfitOccasion('');
+        setSelectedDate(new Date());
       }
 
       if (!hasInitialized) {
@@ -127,7 +117,6 @@ export default function Canvas() {
       console.log('Canvas Auth Check:', {
         authStatus,
         tokenExists: !!token,
-        tokenPreview: token ? token.substring(0, 20) + '...' : 'null',
       });
 
       setIsAuthenticated(authStatus && !!token);
@@ -140,15 +129,38 @@ export default function Canvas() {
   };
 
   const handleItemDrag = (item: any, gestureState: any) => {
+    console.log('handleItemDrag called with:', {
+      itemName: item.name,
+      gestureState,
+    });
+
     if (!isAuthenticated) {
       Alert.alert('Authentication Required', 'Please log in to create outfits.');
       return;
     }
 
+    // Get screen dimensions
     const modalHeight = screenHeight * 0.5;
     const canvasArea = screenHeight - modalHeight;
 
-    if (gestureState.absoluteY < canvasArea + 50) {
+    // More lenient drag detection - check multiple conditions
+    const wasDraggedUp = gestureState.translationY < -30; // Dragged up by 30px
+    const isInCanvasArea = gestureState.absoluteY < canvasArea + 100; // More generous area
+    const wasSignificantDrag = Math.abs(gestureState.translationX) > 20 || Math.abs(gestureState.translationY) > 20;
+
+    console.log('Drag analysis:', {
+      modalHeight,
+      canvasArea,
+      absoluteY: gestureState.absoluteY,
+      translationY: gestureState.translationY,
+      wasDraggedUp,
+      isInCanvasArea,
+      wasSignificantDrag,
+      shouldAddToCanvas: (wasDraggedUp || isInCanvasArea) && wasSignificantDrag,
+    });
+
+    // Add item if it was dragged significantly upward OR into canvas area
+    if ((wasDraggedUp || isInCanvasArea) && wasSignificantDrag) {
       const actualItemId = item._id || item.id || item.itemId;
 
       if (!actualItemId) {
@@ -159,24 +171,38 @@ export default function Canvas() {
       const itemIdString = String(actualItemId);
 
       if (itemIdString === 'undefined' || itemIdString.includes('undefined')) {
-        Alert.alert('Error', 'Item ID is invalid. Please check the ItemsPopUp component.');
+        Alert.alert('Error', 'Item ID is invalid.');
         return;
       }
+
+      // Calculate position - prefer gesture position, fallback to center
+      let dropX = gestureState.absoluteX || screenWidth / 2;
+      let dropY = gestureState.absoluteY || canvasArea / 2;
+
+      // INCREASED ITEM SIZE - now 120x120 instead of 60x60
+      const itemSize = 120;
+      
+      // Ensure item stays within canvas bounds with new size
+      dropX = Math.max(10, Math.min(dropX - itemSize/2, screenWidth - itemSize - 10));
+      dropY = Math.max(10, Math.min(dropY - itemSize/2, canvasArea - itemSize - 10));
 
       const newItem: DroppedItem = {
         id: itemIdString + '_dropped_' + Date.now(),
         itemId: itemIdString,
         image: item.image || item.image_url,
         name: item.name,
-        x: Math.max(10, Math.min(gestureState.absoluteX - 30, screenWidth - 70)),
-        y: Math.max(10, Math.min(gestureState.absoluteY - 30, canvasArea - 70)),
-        width: 200,
-        height: 200,
+        x: dropX,
+        y: dropY,
+        width: itemSize,
+        height: itemSize,
         rotation: 0,
-        zIndex: 1,
+        zIndex: Date.now(),
       };
 
       setDroppedItems((prev) => [...prev, newItem]);
+      console.log('Item successfully added to canvas:', item.name, 'at position:', { x: dropX, y: dropY });
+    } else {
+      console.log('Item drag did not meet criteria for adding to canvas');
     }
   };
 
@@ -189,9 +215,6 @@ export default function Canvas() {
   };
 
   const handleDone = async () => {
-    console.log('Done button clicked');
-
-    // Re-check authentication
     await checkAuthentication();
 
     if (!isAuthenticated) {
@@ -204,21 +227,15 @@ export default function Canvas() {
       return;
     }
 
-    console.log('Opening save modal...');
     setSaveModalVisible(true);
   };
 
   const handleSave = async () => {
-    console.log('Save function called');
-    console.log('Form data:', { outfitName, outfitOccasion, itemsCount: droppedItems.length });
-
-    // Basic validation
     if (!outfitName.trim()) {
       Alert.alert('Missing Name', 'Please enter a name for your outfit.');
       return;
     }
 
-    // Make occasion optional or provide default
     const finalOccasion = outfitOccasion.trim() || 'General';
 
     // Validate items
@@ -238,29 +255,24 @@ export default function Canvas() {
     }
 
     setSaving(true);
-    console.log('Starting save process...');
 
     try {
       const payload = {
         name: outfitName.trim(),
-        occasion: outfitOccasion.trim(),
+        occasion: finalOccasion,
         plannedDate: plannedDate ? plannedDate : undefined,
         items: droppedItems.map((d) => ({
           item: d.itemId,
           x: d.x,
           y: d.y,
-          width: d.width || 200,
-          height: d.height || 200,
+          width: d.width || 120,
+          height: d.height || 120,
           rotation: d.rotation || 0,
           zIndex: d.zIndex || 1,
         })),
       };
 
-      console.log('Payload to send:', payload);
-
       const result = await outfitsAPI.createOutfit(payload);
-
-      console.log('Save successful:', result);
 
       // Reset form and canvas
       setOutfitName('');
@@ -272,7 +284,7 @@ export default function Canvas() {
 
       Alert.alert('Success', 'Outfit saved successfully!');
     } catch (error: any) {
-      console.error('Save error details:', error);
+      console.error('Save error:', error);
 
       if (apiUtils.handleAuthError(error)) {
         setIsAuthenticated(false);
@@ -299,30 +311,49 @@ export default function Canvas() {
     setSaveModalVisible(false);
   };
 
-  // Immediate clear function for testing
   const handleImmediateClear = () => {
-    console.log('Immediate clear pressed');
     setDroppedItems([]);
     setOutfitName('');
     setOutfitOccasion('');
     setPlannedDate('');
     setCameFromCalendar(false);
-    console.log('Canvas immediately cleared');
   };
 
-  const handleDateChange = (selectedDate: Date) => {
-    const formattedDate = selectedDate.toISOString().split('T')[0];
-    setPlannedDate(formattedDate);
-    setDatePickerVisible(false); // Close the date picker for native
+  // Fixed date picker handlers
+  const handleDatePickerOpen = () => {
+    try {
+      if (plannedDate) {
+        setSelectedDate(new Date(plannedDate));
+      } else {
+        setSelectedDate(new Date());
+      }
+      setDatePickerVisible(true);
+    } catch (error) {
+      console.error('Error opening date picker:', error);
+      setSelectedDate(new Date());
+      setDatePickerVisible(true);
+    }
   };
 
-  const handleWebDateChange = (date: Date | null) => {
+  const handleDateChange = (event: any, date?: Date) => {
+    if (Platform.OS === 'android') {
+      setDatePickerVisible(false);
+    }
+    
     if (date) {
+      setSelectedDate(date);
       const formattedDate = date.toISOString().split('T')[0];
       setPlannedDate(formattedDate);
     }
   };
 
+  const handleDateConfirm = () => {
+    if (Platform.OS === 'ios') {
+      setDatePickerVisible(false);
+    }
+  };
+
+  // Draggable dropped item component
   const DraggableDroppedItem = ({ item }: { item: DroppedItem }) => {
     const pan = useRef(new Animated.ValueXY({ x: item.x, y: item.y })).current;
     const scale = useRef(new Animated.Value(1)).current;
@@ -337,8 +368,9 @@ export default function Canvas() {
         },
         onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
         onPanResponderRelease: (evt, gestureState) => {
-          const finalX = Math.max(10, Math.min(item.x + gestureState.dx, screenWidth - 70));
-          const finalY = Math.max(10, Math.min(item.y + gestureState.dy, screenHeight * 0.5 - 70));
+          const canvasHeight = screenHeight * 0.5;
+          const finalX = Math.max(10, Math.min(item.x + gestureState.dx, screenWidth - 130));
+          const finalY = Math.max(10, Math.min(item.y + gestureState.dy, canvasHeight - 130));
 
           updateItemPosition(item.id, finalX, finalY);
 
@@ -352,14 +384,21 @@ export default function Canvas() {
 
     return (
       <Animated.View
-        style={[styles.droppedItem, { transform: [{ translateX: pan.x }, { translateY: pan.y }, { scale }] }]}
+        style={[
+          styles.droppedItem,
+          {
+            left: item.x,
+            top: item.y,
+            transform: [{ scale }],
+          },
+        ]}
         {...panResponder.panHandlers}
       >
         <TouchableOpacity style={styles.itemTouchable}>
           <Image source={{ uri: item.image }} style={styles.droppedItemImage} />
         </TouchableOpacity>
         <TouchableOpacity style={styles.removeButton} onPress={() => removeItem(item.id)}>
-          <Ionicons name="close" size={14} color="white" />
+          <Ionicons name="close" size={12} color="white" />
         </TouchableOpacity>
       </Animated.View>
     );
@@ -391,167 +430,164 @@ export default function Canvas() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <View style={styles.container}>
-          {/* Weather widget top-left */}
-          <View style={styles.weatherWrap} pointerEvents="box-none">
-            <WeatherWidget />
-          </View>
-
-          {/* Clear canvas button - only show if there are items or planned date */}
-          {(droppedItems.length > 0 || (plannedDate && plannedDate.trim() !== '')) && (
-            <View style={styles.clearButtonsContainer}>
-              {/* Temporary immediate clear button for testing */}
-              <TouchableOpacity style={styles.immediateClearButton} onPress={handleImmediateClear}>
-                <Ionicons name="trash" size={20} color="white" />
-              </TouchableOpacity>
-            </View>
-          )}
-
-          {/* Canvas area with dropped items */}
-          <View style={styles.canvasArea}>
-            {droppedItems.length === 0 && (
-              <View style={styles.dropZoneHint}>
-                <Text style={styles.dropZoneText}>
-                  {plannedDate
-                    ? `Planning outfit for ${plannedDate}\nDrag items here from the popup below`
-                    : 'Drag items here from the popup below'}
-                </Text>
-              </View>
-            )}
-            {droppedItems.map((item) => (
-              <DraggableDroppedItem key={item.id} item={item} />
-            ))}
-          </View>
-
-          <TouchableOpacity style={styles.add} onPress={() => setModalVisible(true)}>
-            <Ionicons name="add" size={24} color="white" />
-          </TouchableOpacity>
-
-          {droppedItems.length > 0 && (
-            <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
-              <Ionicons name="checkmark" size={24} color="white" />
-            </TouchableOpacity>
-          )}
-
-          {/* Items Modal */}
-          <Modal animationType="slide" transparent visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
-            <View style={styles.modalContainer}>
-              <View style={styles.modalContent}>
-                <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
-                  <Ionicons name="close" size={24} color="black" />
-                </TouchableOpacity>
-                <View style={{ paddingTop: 40, width: '100%' }}>
-                  <ItemsPopUp onItemDrag={handleItemDrag} />
-                </View>
-              </View>
-            </View>
-          </Modal>
-
-          {/* Save Modal */}
-          <Modal animationType="fade" transparent visible={saveModalVisible} onRequestClose={handleCancelSave}>
-            <View style={styles.saveModalOverlay}>
-              <View style={styles.saveModalContent}>
-                <Text style={styles.saveModalTitle}>Save Outfit</Text>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Name *</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={outfitName}
-                    onChangeText={setOutfitName}
-                    placeholder="Enter outfit name"
-                    placeholderTextColor="#999"
-                    editable={!saving}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Occasion *</Text>
-                  <TextInput
-                    style={styles.textInput}
-                    value={outfitOccasion}
-                    onChangeText={setOutfitOccasion}
-                    placeholder="e.g., Work, Party, Casual"
-                    placeholderTextColor="#999"
-                    editable={!saving}
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>Planned Date (Optional)</Text>
-                  <View style={styles.datePickerRow}>
-                    <TouchableOpacity
-                      style={[styles.textInput, { flex: 1, justifyContent: 'center' }]}
-                      onPress={() => {
-                        if (Platform.OS === 'web') {
-                          setWebDate(plannedDate ? new Date(plannedDate) : new Date());
-                        } else {
-                          setDatePickerVisible(true);
-                        }
-                      }}
-                      disabled={saving}
-                    >
-                      <Text style={{ color: plannedDate ? '#000' : '#999' }}>{plannedDate || 'YYYY-MM-DD'}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => {
-                        if (Platform.OS === 'web') {
-                          setWebDate(plannedDate ? new Date(plannedDate) : new Date());
-                        } else {
-                          setDatePickerVisible(true);
-                        }
-                      }}
-                      disabled={saving}
-                    >
-                      <Ionicons name="calendar" size={24} color="#007AFF" style={styles.calendarIcon} />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* Native Date Picker */}
-                  {Platform.OS !== 'web' && (
-                    <DatePicker
-                      modal
-                      open={datePickerVisible}
-                      date={plannedDate ? new Date(plannedDate) : new Date()}
-                      mode="date"
-                      onConfirm={handleDateChange}
-                      onCancel={() => setDatePickerVisible(false)}
-                    />
-                  )}
-
-                  {/* Web Date Picker */}
-                  {Platform.OS === 'web' && webDate && (
-                    <ReactDatePicker selected={webDate} onChange={handleWebDateChange} inline />
-                  )}
-                </View>
-
-                <View style={styles.saveModalButtons}>
-                  <TouchableOpacity
-                    style={[styles.cancelButton, saving && styles.disabledButton]}
-                    onPress={handleCancelSave}
-                    disabled={saving}
-                  >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.saveButton, saving && styles.disabledButton]}
-                    onPress={handleSave}
-                    disabled={saving}
-                  >
-                    {saving ? (
-                      <ActivityIndicator size="small" color="white" />
-                    ) : (
-                      <Text style={styles.saveButtonText}>SAVE</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
+      <View style={styles.container}>
+        {/* Weather widget */}
+        <View style={styles.weatherWrap} pointerEvents="box-none">
+          <WeatherWidget />
         </View>
-      </ScrollView>
+
+        {/* Clear canvas button */}
+        {(droppedItems.length > 0 || (plannedDate && plannedDate.trim() !== '')) && (
+          <View style={styles.clearButtonsContainer}>
+            <TouchableOpacity style={styles.immediateClearButton} onPress={handleImmediateClear}>
+              <Ionicons name="trash" size={20} color="white" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Canvas area with dropped items */}
+        <View style={styles.canvasArea}>
+          {droppedItems.length === 0 && (
+            <View style={styles.dropZoneHint}>
+              <Text style={styles.dropZoneText}>
+                {plannedDate
+                  ? `Planning outfit for ${plannedDate}\nDrag items here from the popup below`
+                  : 'Drag items here from the popup below'}
+              </Text>
+            </View>
+          )}
+          {droppedItems.map((item) => (
+            <DraggableDroppedItem key={item.id} item={item} />
+          ))}
+        </View>
+
+        {/* Add button */}
+        <TouchableOpacity style={styles.add} onPress={() => setModalVisible(true)}>
+          <Ionicons name="add" size={24} color="white" />
+        </TouchableOpacity>
+
+        {/* Done button */}
+        {droppedItems.length > 0 && (
+          <TouchableOpacity style={styles.doneButton} onPress={handleDone}>
+            <Ionicons name="checkmark" size={24} color="white" />
+          </TouchableOpacity>
+        )}
+
+        {/* Items Modal - FIXED LAYOUT */}
+        <Modal 
+          animationType="slide" 
+          transparent 
+          visible={modalVisible} 
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <TouchableOpacity 
+                style={styles.closeButton} 
+                onPress={() => setModalVisible(false)}
+              >
+                <Ionicons name="close" size={24} color="black" />
+              </TouchableOpacity>
+              
+              <ItemsPopUp onItemDrag={handleItemDrag} />
+            </View>
+          </View>
+        </Modal>
+
+        {/* Save Modal with Fixed Date Picker */}
+        <Modal animationType="fade" transparent visible={saveModalVisible} onRequestClose={handleCancelSave}>
+          <View style={styles.saveModalOverlay}>
+            <View style={styles.saveModalContent}>
+              <Text style={styles.saveModalTitle}>Save Outfit</Text>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Name *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={outfitName}
+                  onChangeText={setOutfitName}
+                  placeholder="Enter outfit name"
+                  placeholderTextColor="#999"
+                  editable={!saving}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Occasion *</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={outfitOccasion}
+                  onChangeText={setOutfitOccasion}
+                  placeholder="e.g., Work, Party, Casual"
+                  placeholderTextColor="#999"
+                  editable={!saving}
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>Planned Date (Optional)</Text>
+                <View style={styles.datePickerRow}>
+                  <TouchableOpacity
+                    style={[styles.textInput, { flex: 1, justifyContent: 'center' }]}
+                    onPress={handleDatePickerOpen}
+                    disabled={saving}
+                  >
+                    <Text style={{ color: plannedDate ? '#000' : '#999' }}>
+                      {plannedDate || 'YYYY-MM-DD'}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={handleDatePickerOpen}
+                    disabled={saving}
+                  >
+                    <Ionicons name="calendar" size={24} color="#007AFF" style={styles.calendarIcon} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* Fixed Date Picker */}
+                {datePickerVisible && (
+                  <View style={styles.datePickerContainer}>
+                    <DateTimePicker
+                      value={selectedDate}
+                      mode="date"
+                      display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                      onChange={handleDateChange}
+                      minimumDate={new Date()}
+                    />
+                    {Platform.OS === 'ios' && (
+                      <TouchableOpacity style={styles.dateConfirmButton} onPress={handleDateConfirm}>
+                        <Text style={styles.dateConfirmText}>Confirm</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.saveModalButtons}>
+                <TouchableOpacity
+                  style={[styles.cancelButton, saving && styles.disabledButton]}
+                  onPress={handleCancelSave}
+                  disabled={saving}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.saveButton, saving && styles.disabledButton]}
+                  onPress={handleSave}
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <ActivityIndicator size="small" color="white" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>SAVE</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+      </View>
     </KeyboardAvoidingView>
   );
 }
@@ -559,9 +595,7 @@ export default function Canvas() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 10,
+    backgroundColor: '#f5f5f5',
   },
   canvasArea: {
     flex: 1,
@@ -616,7 +650,7 @@ const styles = StyleSheet.create({
   },
   dropZoneHint: {
     position: 'absolute',
-    top: '55%',
+    top: '50%',
     left: '50%',
     transform: [{ translateX: -100 }, { translateY: -50 }],
     alignItems: 'center',
@@ -624,18 +658,22 @@ const styles = StyleSheet.create({
     width: 200,
   },
   dropZoneText: {
-    marginTop: 10,
     fontSize: 16,
     color: '#ccc',
     textAlign: 'center',
+    lineHeight: 22,
   },
   droppedItem: {
     position: 'absolute',
-    width: 60,
-    height: 60,
+    width: 120,
+    height: 120,
     backgroundColor: 'white',
-    justifyContent: 'center',
-    alignItems: 'center',
+    borderRadius: 12,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   itemTouchable: {
     width: '100%',
@@ -644,38 +682,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   droppedItemImage: {
-    width: 200,
-    height: 200,
-    borderRadius: 6,
+    width: 112,
+    height: 112,
+    borderRadius: 8,
   },
   removeButton: {
     position: 'absolute',
-    top: -70,
-    right: -20,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    top: -10,
+    right: -10,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: '#FF3B30',
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: 'white',
     zIndex: 1,
   },
   add: {
     position: 'absolute',
-    bottom: 140,
-    right: 30,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#545454',
-    justifyContent: 'center',
+    bottom: 130, // Increased from 16 to ensure visibility
+    right: 20,  // Increased from 16 for better visibility
+    width: 56,
+    height: 56,
+    backgroundColor: '#ec4899', // Pink gradient approximation
+    borderRadius: 24,
     alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 1000,
   },
   doneButton: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 130,
     left: 30,
     width: 60,
     height: 60,
@@ -683,13 +730,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#80AE85',
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   clearButtonsContainer: {
     position: 'absolute',
     top: 60,
     right: 15,
-    flexDirection: 'row',
-    gap: 10,
     zIndex: 15,
   },
   immediateClearButton: {
@@ -699,11 +749,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF3030',
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  weatherWrap: {
+    position: 'absolute',
+    top: 60,
+    left: 12,
+    zIndex: 20,
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'flex-end',
-    alignItems: 'center',
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
@@ -712,13 +772,23 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
-    padding: 20,
-    alignItems: 'center',
   },
   closeButton: {
     position: 'absolute',
-    top: 10,
-    right: 10,
+    top: 15,
+    right: 15,
+    zIndex: 1000,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    width: 30,
+    height: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   saveModalOverlay: {
     flex: 1,
@@ -732,6 +802,7 @@ const styles = StyleSheet.create({
     padding: 30,
     width: '85%',
     maxWidth: 400,
+    maxHeight: '80%',
   },
   saveModalTitle: {
     fontSize: 20,
@@ -757,6 +828,28 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     backgroundColor: '#f9f9f9',
+  },
+  datePickerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  calendarIcon: {
+    marginLeft: 10,
+  },
+  datePickerContainer: {
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  dateConfirmButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  dateConfirmText: {
+    color: 'white',
+    fontWeight: '600',
   },
   saveModalButtons: {
     flexDirection: 'row',
@@ -796,18 +889,5 @@ const styles = StyleSheet.create({
   },
   disabledButton: {
     opacity: 0.6,
-  },
-  weatherWrap: {
-    position: 'absolute',
-    top: 60,
-    left: 12,
-    zIndex: 20,
-  },
-  datePickerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  calendarIcon: {
-    marginLeft: 10,
   },
 });

@@ -30,7 +30,6 @@ const ItemCard: React.FC<ItemCardProps> = ({
     router.push(`/closet-single?id=${itemId}`);
   };
 
-  // Map color names to actual colors for the color indicators
   const getColorValue = (colorName: string) => {
     const colorMap: { [key: string]: string } = {
       red: '#ef4444',
@@ -54,20 +53,27 @@ const ItemCard: React.FC<ItemCardProps> = ({
       onPress={handlePress}
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
-      className={`relative bg-white rounded-2xl drop-shadow-sm border border-gray-100 overflow-hidden ${
-        isPressed ? 'scale-95' : 'scale-100'
-      } transition-transform duration-200`}
       style={{
+        backgroundColor: 'white',
+        borderRadius: 16,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        borderWidth: 1,
+        borderColor: '#f3f4f6',
+        overflow: 'hidden',
         transform: [{ scale: isPressed ? 0.95 : 1 }],
         elevation: 3,
       }}
     >
       {/* Image container */}
-      <View className="relative bg-gray-50" style={{ aspectRatio: 3/4 }}>
+      <View style={{ backgroundColor: '#f9fafb', aspectRatio: 3 / 4 }}>
         <Image 
           source={imageUrl} 
-          className="w-full h-full"
           style={{ 
+            width: '100%',
+            height: '100%',
             resizeMode: 'cover',
           }}
         />
@@ -75,15 +81,32 @@ const ItemCard: React.FC<ItemCardProps> = ({
         {/* Overlay gradient */}
         <LinearGradient
           colors={['transparent', 'transparent', 'rgba(0,0,0,0.2)']}
-          className="absolute inset-0"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+          }}
           pointerEvents="none"
         />
         
         {/* Category badge */}
         {category && (
-          <View className="absolute top-3 left-3">
-            <View className="inline-block bg-white/90 backdrop-blur-sm text-gray-800 px-3 py-1 rounded-full text-xs font-medium border border-white/50">
-              <Text className="text-gray-800 text-xs font-medium">
+          <View style={{ position: 'absolute', top: 12, left: 12 }}>
+            <View style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              paddingHorizontal: 12,
+              paddingVertical: 4,
+              borderRadius: 9999,
+              borderWidth: 1,
+              borderColor: 'rgba(255, 255, 255, 0.5)',
+            }}>
+              <Text style={{
+                color: '#374151',
+                fontSize: 12,
+                fontWeight: '500',
+              }}>
                 {category}
               </Text>
             </View>
@@ -92,15 +115,27 @@ const ItemCard: React.FC<ItemCardProps> = ({
       </View>
       
       {/* Content */}
-      <View className="p-4">
+      <View style={{ padding: 16 }}>
         {brand && (
-          <Text className="text-gray-500 text-sm mb-1 uppercase tracking-wide">
+          <Text style={{
+            color: '#6b7280',
+            fontSize: 14,
+            marginBottom: 4,
+            textTransform: 'uppercase',
+            letterSpacing: 1,
+          }}>
             {brand}
           </Text>
         )}
         
         <Text 
-          className="text-gray-900 font-semibold capitalize leading-tight mb-2"
+          style={{
+            color: '#111827',
+            fontWeight: '600',
+            textTransform: 'capitalize',
+            lineHeight: 20,
+            marginBottom: 8,
+          }}
           numberOfLines={2}
         >
           {name}
@@ -108,22 +143,40 @@ const ItemCard: React.FC<ItemCardProps> = ({
         
         {/* Material info */}
         {material && (
-          <Text className="text-gray-500 text-xs mb-2">
+          <Text style={{
+            color: '#6b7280',
+            fontSize: 12,
+            marginBottom: 8,
+          }}>
             {material}
           </Text>
         )}
         
         {/* Action row */}
-        <View className="flex-row items-center justify-between pt-2">
+        <View style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          paddingTop: 8,
+        }}>
           {/* Color indicators */}
-          <View className="flex-row items-center space-x-2">
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             {color && (
               <View 
-                className="w-3 h-3 rounded-full border-2 border-white shadow-sm"
-                style={{ backgroundColor: getColorValue(color) }}
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 9999,
+                  borderWidth: 2,
+                  borderColor: 'white',
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 1 },
+                  shadowOpacity: 0.1,
+                  shadowRadius: 2,
+                  backgroundColor: getColorValue(color),
+                }}
               />
             )}
-
           </View>
           
           {/* View button */}
@@ -131,7 +184,11 @@ const ItemCard: React.FC<ItemCardProps> = ({
             onPress={handlePress}
             activeOpacity={0.7}
           >
-            <Text className="text-rose-600 text-xs font-medium">
+            <Text style={{
+              color: '#e11d48',
+              fontSize: 12,
+              fontWeight: '500',
+            }}>
               View
             </Text>
           </TouchableOpacity>

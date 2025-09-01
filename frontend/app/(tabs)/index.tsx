@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, FlatList, ActivityIndicator, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, FlatList, ActivityIndicator, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import OutfitTypeCard from '../../components/ItemTypesCard';
 import { itemsAPI } from '../../services/api';
@@ -186,36 +186,40 @@ export default function Home() {
 
   // Header component
   const renderHeader = () => (
-    <View className="pb-5">
+    <View style={styles.headerContainer}>
       {/* Top header with title and icons */}
-      <View className="flex-row items-center justify-center mb-5 h-40 bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 rounded-b-3xl drop-shadow-sm">
-        <View className="items-center flex-1">
-          <Text className="text-2xl font-bold text-[#B91C7C] mb-0.5">My Closet</Text>
-          <Text className="text-sm text-gray-600">Create stunning outfits</Text>
+      <View style={styles.topHeader}>
+        <View style={styles.headerContent}>
+          <Text style={styles.headerTitle}>My Closet</Text>
+          <Text style={styles.headerSubtitle}>Create stunning outfits</Text>
         </View>
       </View>
 
-      <View className='px-4'>
+      <View style={styles.headerBody}>
         {/* Greeting section */}
-        <View className="flex-row justify-between items-center bg-[#FCFDFD] p-4 rounded-xl mb-5 drop-shadow-sm">
-          <View className="flex-1">
-            <Text className="text-lg font-semibold text-gray-800 mb-1">{getGreeting()} ✨</Text>
-            <Text className="text-sm text-gray-600">Ready to create amazing outfits?</Text>
+        <View style={styles.greetingSection}>
+          <View style={styles.greetingContent}>
+            <Text style={styles.greetingText}>{getGreeting()} ✨</Text>
+            <Text style={styles.greetingSubtext}>Ready to create amazing outfits?</Text>
           </View>
         </View>
 
         {/* Stats section */}
-        <View className="flex-row gap-4 justify-around ">
-            <View className="flex-1 flex-row justify-around gap-4">
-            <View className="items-center flex-1 py-3 rounded-xl bg-[#FCFCFD]">
-              <Text className="text-2xl font-bold text-gray-800 mb-1">{totalItems}</Text>
-              <Text className="text-xs text-gray-600 font-medium tracking-wide">TOTAL ITEMS</Text>
-            </View>
-            <View className="items-center flex-1 py-3 rounded-xl bg-[#FCFCFD]">
-              <Text className="text-2xl font-bold text-gray-800 mb-1">{categories.length}</Text>
-              <Text className="text-xs text-gray-600 font-medium tracking-wide">CATEGORIES</Text>
-            </View>
-            </View>
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statValue}>{totalItems}</Text>
+            <Text style={styles.statLabel}>TOTAL ITEMS</Text>
+          </View>
+
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, styles.outfitsValue]}>12</Text>
+            <Text style={styles.statLabel}>OUTFITS</Text>
+          </View>
+
+          <View style={styles.statItem}>
+            <Text style={[styles.statValue, styles.weekValue]}>5</Text>
+            <Text style={styles.statLabel}>THIS WEEK</Text>
+          </View>
         </View>
       </View>
     </View>
@@ -224,13 +228,13 @@ export default function Home() {
   // Show login prompt if not authenticated
   if (!isAuthenticated) {
     return (
-      <View className="flex-1 bg-[#f8f9fa]">
-        <View className="flex-1 justify-center items-center p-5">
+      <View style={styles.container}>
+        <View style={styles.centerContainer}>
           <Ionicons name="lock-closed-outline" size={64} color="#666" />
-          <Text className="text-xl font-semibold text-gray-800 mt-5 mb-2.5">Authentication Required</Text>
-          <Text className="text-base text-gray-600 text-center mb-8">Please log in to view your closet items.</Text>
-          <TouchableOpacity className="bg-blue-500 px-8 py-3 rounded-lg" onPress={() => router.replace('/auth/login')}>
-            <Text className="text-white text-base font-semibold">Go to Login</Text>
+          <Text style={styles.authTitle}>Authentication Required</Text>
+          <Text style={styles.authSubtitle}>Please log in to view your closet items.</Text>
+          <TouchableOpacity style={styles.authButton} onPress={() => router.replace('/auth/login')}>
+            <Text style={styles.authButtonText}>Go to Login</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -239,10 +243,10 @@ export default function Home() {
 
   if (loading) {
     return (
-      <View className="flex-1 bg-[#f8f9fa]">
-        <View className="flex-1 justify-center items-center">
+      <View style={styles.container}>
+        <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text className="mt-2.5 text-base text-gray-600">Loading your closet...</Text>
+          <Text style={styles.loadingText}>Loading your closet...</Text>
         </View>
       </View>
     );
@@ -250,12 +254,12 @@ export default function Home() {
 
   if (error) {
     return (
-      <View className="flex-1 bg-[#f8f9fa]">
-        <View className="flex-1 justify-center items-center p-5">
+      <View style={styles.container}>
+        <View style={styles.centerContainer}>
           <Ionicons name="alert-circle-outline" size={48} color="#FF3B30" />
-          <Text className="text-base text-red-500 text-center my-4 leading-6">{error}</Text>
-          <TouchableOpacity className="bg-blue-500 px-5 py-3 rounded-lg" onPress={handleRetry}>
-            <Text className="text-white text-base font-semibold">Try Again</Text>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+            <Text style={styles.retryButtonText}>Try Again</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -263,39 +267,258 @@ export default function Home() {
   }
 
   return (
-  <View className="flex-1 bg-[#F6F7F9]">
-    {renderHeader()}
-    
-    <View className="flex-1 flex-col gap-4 px-4">
-      <Text className="text-base font-semibold text-gray-800">Categories</Text>
+    <View style={styles.mainContainer}>
+      {renderHeader()}
+      
+      <View style={styles.contentContainer}>
+        <Text style={styles.categoriesTitle}>Categories</Text>
 
-      <FlatList
-        data={categories}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <OutfitTypeCard
-            category={item.type}
-            itemCount={item.items_available}
-            imageUrl={item.imageUrl}
-            onPress={() => handleCategoryPress(item.id, item.type)}
-          />
-        )}
-        refreshing={loading}
-        onRefresh={handleRefresh}
-        showsVerticalScrollIndicator={false}
-        style={{ flex: 1 }}
+        <FlatList
+          data={categories}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <OutfitTypeCard
+              category={item.type}
+              itemCount={item.items_available}
+              imageUrl={item.imageUrl}
+              onPress={() => handleCategoryPress(item.id, item.type)}
+            />
+          )}
+          refreshing={loading}
+          onRefresh={handleRefresh}
+          showsVerticalScrollIndicator={false}
+          style={styles.flatList}
+        />
+      </View>
 
-      />
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={handleAddItem}
+        activeOpacity={0.8}
+      >
+        <Ionicons name="add" size={28} color="#FFFFFF" />
+      </TouchableOpacity>
+
+      <AddItemModal visible={isAddModalVisible} onClose={handleCloseModal} onItemAdded={handleItemAdded} />
     </View>
-
-    <TouchableOpacity
-      className="absolute bottom-4 right-4 w-12 h-12 bg-gradient-to-r from-rose-500 to-pink-500 rounded-full shadow-lg flex items-center justify-center"
-      onPress={handleAddItem}
-    >
-      <Ionicons name="add" size={28} color="#fff" />
-    </TouchableOpacity>
-
-    <AddItemModal visible={isAddModalVisible} onClose={handleCloseModal} onItemAdded={handleItemAdded} />
-  </View>
-);
+  );
 }
+
+const styles = StyleSheet.create({
+  // Main Containers
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa',
+  },
+  mainContainer: {
+    flex: 1,
+    backgroundColor: '#F6F7F9',
+    position: 'relative',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+
+  // Header Styles
+  headerContainer: {
+    paddingBottom: 20,
+  },
+  topHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    height: 160,
+    backgroundColor: '#fdf2f8', // Light rose/pink gradient approximation
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  headerContent: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#B91C7C',
+    marginBottom: 2,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+
+  // Header Body
+  headerBody: {
+    paddingHorizontal: 16,
+  },
+
+  // Greeting Section
+  greetingSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#FCFDFD',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  greetingContent: {
+    flex: 1,
+  },
+  greetingText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  greetingSubtext: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+
+  // Stats Section
+  statsContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    justifyContent: 'space-around',
+  },
+  statItem: {
+    alignItems: 'center',
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: '#FCFCFD',
+  },
+  statValue: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 4,
+  },
+  outfitsValue: {
+    color: '#E91E63',
+  },
+  weekValue: {
+    color: '#9C27B0',
+  },
+  statLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+    fontWeight: '500',
+    letterSpacing: 0.5,
+  },
+
+  // Authentication States
+  authTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#1f2937',
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  authSubtitle: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 32,
+  },
+  authButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 32,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  authButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // Loading State
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+
+  // Error State
+  errorText: {
+    fontSize: 16,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginVertical: 16,
+    lineHeight: 24,
+  },
+  retryButton: {
+    backgroundColor: '#3b82f6',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // Content Container
+  contentContainer: {
+    flex: 1,
+    flexDirection: 'column',
+    gap: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 80,
+  },
+  categoriesTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#1f2937',
+  },
+
+  // FlatList
+  flatList: {
+    flex: 1,
+  },
+
+  // Add Button (FAB)
+  addButton: {
+    position: 'absolute',
+    bottom: 130, // Increased from 16 to ensure visibility
+    right: 20,  // Increased from 16 for better visibility
+    width: 56,
+    height: 56,
+    backgroundColor: '#ec4899', // Pink gradient approximation
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 1000,
+  },
+});

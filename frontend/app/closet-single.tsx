@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, ActivityIndicator, Alert, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Image, ActivityIndicator, Alert, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { apiUtils, itemsAPI } from '@/services/api';
@@ -70,31 +70,29 @@ const ClosetSingle = () => {
 
   if (loading) {
     return (
-      <View className="flex-1 justify-center items-center bg-gradient-to-b from-gray-50 to-gray-100">
+      <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#ec4899" />
-        <Text className="mt-4 text-base text-gray-600">Loading item details...</Text>
+        <Text style={styles.loadingText}>Loading item details...</Text>
       </View>
     );
   }
 
   if (error || !item) {
     return (
-      <View className="flex-1 justify-center items-center bg-gradient-to-b from-gray-50 to-gray-100">
-        <Text className="text-lg text-red-500 mt-5 text-center px-6">{error || 'Item not found!'}</Text>
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>{error || 'Item not found!'}</Text>
       </View>
     );
   }
 
   return (
-    <View className="flex-1">
-      <View className="relative bg-white">
-        <View className="absolute inset-0 bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50" />
-
-        <View className="relative px-4">
-          <View className="flex-row items-center justify-between py-3">
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.headerBackground} />
+        <View style={styles.headerContent}>
+          <View style={styles.headerRow}>
             <TouchableOpacity
-              className="size-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center"
-              style={{ marginTop: 20 }}
+              style={styles.backButton}
               onPress={() => router.back()}
             >
               <Ionicons name="arrow-back" size={16} color="#333" />
@@ -105,12 +103,12 @@ const ClosetSingle = () => {
 
       <ScrollView>
         {/* Product Image */}
-        <View className="px-6 py-6">
-          <View className="bg-white rounded-xl drop-shadow-sm border border-gray-100 overflow-hidden mb-6">
-            <View className="aspect-[11/12] relative">
+        <View style={styles.contentContainer}>
+          <View style={styles.imageContainer}>
+            <View style={styles.imageWrapper}>
               <Image
                 source={typeof item.image === 'string' ? { uri: item.image } : item.image}
-                className="w-full h-full"
+                style={styles.itemImage}
                 resizeMode="cover"
                 onError={() => console.log('Image failed to load')}
               />
@@ -118,65 +116,87 @@ const ClosetSingle = () => {
           </View>
 
           {/* Product Info */}
-          <View className="bg-white rounded-2xl p-6 border border-white/50 drop-shadow-sm mb-6">
-            <View className="flex-1">
-              <Text className="text-xl font-bold text-gray-900 mb-2 capitalize">{item.name}</Text>
-              {item.brand && <Text className="text-gray-500 uppercase tracking-wide text-sm mb-2">{item.brand}</Text>}
+          <View style={styles.infoCard}>
+            <View style={styles.infoContent}>
+              <Text style={styles.itemName}>{item.name}</Text>
+              {item.brand && <Text style={styles.brandText}>{item.brand}</Text>}
               {item.dressCode && (
-                <View className="bg-gradient-to-r from-rose-100 to-pink-100 self-start px-3 py-1 rounded-full border border-rose-200/50">
-                  <Text className="text-rose-800 text-sm font-medium">{item.dressCode}</Text>
+                <View style={styles.dressCodeBadge}>
+                  <Text style={styles.dressCodeText}>{item.dressCode}</Text>
                 </View>
               )}
             </View>
           </View>
 
           {/* Product Details */}
-          <View className="bg-white rounded-2xl p-6 border border-white/50 drop-shadow-sm mb-6">
-            <Text className="text-lg font-semibold text-gray-900 mb-4">Details</Text>
+          <View style={styles.detailsCard}>
+            <Text style={styles.sectionTitle}>Details</Text>
 
-            <View className="space-y-4">
+            <View style={styles.detailsList}>
               {item.color && (
-                <View className="flex-row items-center justify-between py-2">
-                  <View className="flex-row items-center space-x-3">
-                    <View className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-500 border-2 border-white shadow-sm" />
-                    <Text className="text-gray-700 font-medium">Color</Text>
+                <View style={styles.detailRow}>
+                  <View style={styles.detailLeft}>
+                    <View style={styles.colorIcon} />
+                    <Text style={styles.detailLabel}>Color</Text>
                   </View>
-                  <Text className="text-gray-900 font-medium">{item.color}</Text>
+                  <Text style={styles.detailValue}>{item.color}</Text>
                 </View>
               )}
 
               {item.material && (
-                <View className="flex-row items-center justify-between py-2">
-                  <View className="flex-row items-center space-x-3">
-                    <View className="w-8 h-8 rounded-lg bg-gradient-to-br from-green-100 to-emerald-200 border-2 border-white shadow-sm flex items-center justify-center">
-                      <Text className="text-xs">🌿</Text>
+                <View style={styles.detailRow}>
+                  <View style={styles.detailLeft}>
+                    <View style={styles.materialIcon}>
+                      <Text style={styles.iconEmoji}>🌿</Text>
                     </View>
-                    <Text className="text-gray-700 font-medium">Material</Text>
+                    <Text style={styles.detailLabel}>Material</Text>
                   </View>
-                  <Text className="text-gray-900 font-medium">{item.material}</Text>
+                  <Text style={styles.detailValue}>{item.material}</Text>
                 </View>
               )}
 
               {(item.occasion || item.dressCode) && (
-                <View className="flex-row items-center justify-between py-2">
-                  <View className="flex-row items-center space-x-3">
-                    <View className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-100 to-indigo-200 border-2 border-white shadow-sm flex items-center justify-center">
-                      <Text className="text-xs">👔</Text>
+                <View style={styles.detailRow}>
+                  <View style={styles.detailLeft}>
+                    <View style={styles.occasionIcon}>
+                      <Text style={styles.iconEmoji}>👔</Text>
                     </View>
-                    <Text className="text-gray-700 font-medium">Occasion</Text>
+                    <Text style={styles.detailLabel}>Occasion</Text>
                   </View>
-                  <Text className="text-gray-900 font-medium">{item.occasion || item.dressCode}</Text>
+                  <Text style={styles.detailValue}>{item.occasion || item.dressCode}</Text>
                 </View>
               )}
             </View>
-            {/* Usage Analytics */}
           </View>
-          <View className="bg-white rounded-2xl p-6 border border-white/50 drop-shadow-sm mb-6">
-            <Text className="text-lg font-semibold text-gray-900 mb-4">Usage Analytics</Text>
-            <View className="items-center">
-              <Ionicons name="trending-up" size={32} color="#ec4899" style={{ marginBottom: 8 }} />
-              <Text className="text-xl font-bold text-gray-900">{item.usageCount || 0}</Text>
-              <Text className="text-xs text-gray-600">Times Worn</Text>
+
+          {/* Usage Analytics */}
+          <View style={styles.analyticsCard}>
+            <Text style={styles.sectionTitle}>Usage Analytics</Text>
+
+            <View style={styles.analyticsRow}>
+              <View style={styles.analyticsItem}>
+                <View style={[styles.analyticsIcon, styles.trendingIcon]}>
+                  <Ionicons name="trending-up" size={24} color="white" />
+                </View>
+                <Text style={styles.analyticsValue}>{item.usageCount || 0}</Text>
+                <Text style={styles.analyticsLabel}>Times Worn</Text>
+              </View>
+
+              <View style={styles.analyticsItem}>
+                <View style={[styles.analyticsIcon, styles.calendarIcon]}>
+                  <Ionicons name="calendar" size={24} color="white" />
+                </View>
+                <Text style={styles.analyticsValue}>5</Text>
+                <Text style={styles.analyticsLabel}>In Outfits</Text>
+              </View>
+
+              <View style={styles.analyticsItem}>
+                <View style={[styles.analyticsIcon, styles.paletteIcon]}>
+                  <Ionicons name="color-palette" size={24} color="white" />
+                </View>
+                <Text style={styles.analyticsValue}>8</Text>
+                <Text style={styles.analyticsLabel}>Style Matches</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -184,5 +204,310 @@ const ClosetSingle = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  // Loading and Error States
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f9fafb',
+  },
+  errorText: {
+    fontSize: 18,
+    color: '#ef4444',
+    marginTop: 20,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+  },
+
+  // Main Container
+  container: {
+    flex: 1,
+  },
+
+  // Header
+  header: {
+    position: 'relative',
+    backgroundColor: '#ffffff',
+  },
+  headerBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: '#fdf2f8', // Light rose background
+  },
+  headerContent: {
+    position: 'relative',
+    paddingHorizontal: 16,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  // Content
+  contentContainer: {
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+
+  // Image Container
+  imageContainer: {
+    marginBottom: 24,
+  },
+  imageWrapper: {
+    backgroundColor: '#ffffff',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#f3f4f6',
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  itemImage: {
+    width: '100%',
+    aspectRatio: 11/12,
+  },
+
+  // Info Card
+  infoCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  infoContent: {
+    flex: 1,
+  },
+  itemName: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 8,
+    textTransform: 'capitalize',
+  },
+  brandText: {
+    color: '#6b7280',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  dressCodeBadge: {
+    backgroundColor: '#fef2f2',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(251, 113, 133, 0.2)',
+  },
+  dressCodeText: {
+    color: '#9f1239',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+
+  // Details Card
+  detailsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#111827',
+    marginBottom: 16,
+  },
+  detailsList: {
+    gap: 16,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+  },
+  detailLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  colorIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#f59e0b', // Amber gradient approximation
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  materialIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#d1fae5', // Green background
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  occasionIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: '#dbeafe', // Blue background
+    borderWidth: 2,
+    borderColor: '#ffffff',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  iconEmoji: {
+    fontSize: 12,
+  },
+  detailLabel: {
+    color: '#374151',
+    fontWeight: '500',
+  },
+  detailValue: {
+    color: '#111827',
+    fontWeight: '500',
+  },
+
+  // Analytics Card
+  analyticsCard: {
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  analyticsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  analyticsItem: {
+    alignItems: 'center',
+    flex: 1,
+  },
+  analyticsIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  trendingIcon: {
+    backgroundColor: '#ec4899', // Rose gradient approximation
+  },
+  calendarIcon: {
+    backgroundColor: '#8b5cf6', // Purple gradient approximation
+  },
+  paletteIcon: {
+    backgroundColor: '#10b981', // Emerald gradient approximation
+  },
+  analyticsValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#111827',
+  },
+  analyticsLabel: {
+    fontSize: 12,
+    color: '#6b7280',
+  },
+});
 
 export default ClosetSingle;

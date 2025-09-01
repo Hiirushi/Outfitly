@@ -16,7 +16,6 @@ import { itemsAPI } from '@/services/api';
 import { itemTypesAPI } from '@/services/itemTypesAPI';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'expo-router';
-import PopupScreenButton from './buttons/PopupScreenButton';
 
 interface Item {
   _id: string;
@@ -63,21 +62,20 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
 
       console.log('Fetching data for outfit creation...');
 
-      // Fetch item types (single API call - global data)
-      const itemTypesResponse = await itemTypesAPI.getTypes();
-      console.log('Item types fetched:', itemTypesResponse.length);
+      // Fetch item types and user items in parallel
+      const [itemTypesResponse, userItemsResponse] = await Promise.all([
+        itemTypesAPI.getTypes(),
+        itemsAPI.getItems()
+      ]);
 
-      // Fetch ALL user items (single API call - user-specific data)
-      const userItemsResponse = await itemsAPI.getItems();
       const userItems: Item[] = userItemsResponse.success ? userItemsResponse.data : [];
       
       console.log('User items fetched:', userItems.length);
 
-      // Calculate item counts for each type (client-side filtering)
+      // Calculate item counts for each type
       const typesWithCounts: ItemType[] = [];
 
       itemTypesResponse.forEach((itemType: any) => {
-        // Count items for this type
         const itemsForThisType = userItems.filter(item => {
           const itemTypeId = item.itemType && typeof item.itemType === 'object' 
             ? item.itemType._id 
@@ -125,7 +123,7 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
     }
   };
 
-  // CLIENT-SIDE FILTERING
+  // Filter items by type
   const handleTypeSelect = (typeId: string) => {
     console.log('Filtering items by type:', typeId);
     setSelectedTypeId(typeId);
@@ -142,7 +140,7 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
       setFilteredItems(filtered);
     }
     
-    console.log(`Showing ${typeId === 'All' ? allItems.length : filteredItems.length} items`);
+    console.log(`Showing items for type: ${typeId}, count: ${typeId === 'All' ? allItems.length : filteredItems.length}`);
   };
 
   useEffect(() => {
@@ -151,40 +149,115 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
     }
   }, [isAuthenticated]);
 
+  // Category Button Component
+  const CategoryButton = ({ type, isSelected, onPress }: {
+    type: string;
+    isSelected: boolean;
+    onPress: () => void;
+  }) => (
+    <TouchableOpacity
+      style={[
+        styles.categoryButton,
+        isSelected && styles.categoryButtonSelected
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <Text style={[
+        styles.categoryButtonText,
+        isSelected && styles.categoryButtonTextSelected
+      ]}>
+        {type}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  // Enhanced Draggable Item Component with better drag detection
   const DraggableItem = ({ item }: { item: Item }) => {
     const pan = useRef(new Animated.ValueXY()).current;
     const scale = useRef(new Animated.Value(1)).current;
+    const isDragging = useRef(false);
 
     const panResponder = useRef(
       PanResponder.create({
-        onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant: () => {
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: (evt, gestureState) => {
+          // Start drag if moved more than 3 pixels (more sensitive)
+          const shouldStart = Math.abs(gestureState.dx) > 3 || Math.abs(gestureState.dy) > 3;
+          if (shouldStart && !isDragging.current) {
+            isDragging.current = true;
+            console.log('Starting drag for:', item.name);
+          }
+          return shouldStart;
+        },
+        onPanResponderGrant: (evt, gestureState) => {
+          console.log('Pan responder granted for:', item.name);
+          isDragging.current = true;
+          
           // Scale up the item when drag starts
           Animated.spring(scale, {
-            toValue: 1.2,
+            toValue: 1.3,
+            tension: 100,
+            friction: 8,
             useNativeDriver: false,
           }).start();
         },
         onPanResponderMove: Animated.event(
           [null, { dx: pan.x, dy: pan.y }],
-          { useNativeDriver: false }
+          { 
+            useNativeDriver: false,
+            listener: (evt, gestureState) => {
+              // Optional: Add visual feedback during drag
+              if (Math.abs(gestureState.dy) > 50) {
+                console.log('Dragging upward significantly:', gestureState.dy);
+              }
+            }
+          }
         ),
         onPanResponderRelease: (evt, gestureState) => {
-          // Reset scale and position
+          console.log('Item drag released:', {
+            item: item.name,
+            dx: gestureState.dx,
+            dy: gestureState.dy,
+            absoluteX: evt.nativeEvent.pageX,
+            absoluteY: evt.nativeEvent.pageY,
+            wasDragging: isDragging.current
+          });
+
+          // Reset visual state
           Animated.spring(scale, {
             toValue: 1,
+            tension: 100,
+            friction: 8,
             useNativeDriver: false,
           }).start();
           
           pan.setValue({ x: 0, y: 0 });
 
-          // Call the parent's onItemDrag function
-          onItemDrag(item, {
-            translationX: gestureState.dx,
-            translationY: gestureState.dy,
-            absoluteX: evt.nativeEvent.pageX,
-            absoluteY: evt.nativeEvent.pageY,
-          });
+          // Always call onItemDrag if there was any movement
+          if (isDragging.current && (Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5)) {
+            console.log('Calling onItemDrag for:', item.name);
+            
+            onItemDrag(item, {
+              translationX: gestureState.dx,
+              translationY: gestureState.dy,
+              absoluteX: evt.nativeEvent.pageX,
+              absoluteY: evt.nativeEvent.pageY,
+              moveX: gestureState.moveX,
+              moveY: gestureState.moveY,
+            });
+          }
+
+          isDragging.current = false;
+        },
+        onPanResponderTerminate: () => {
+          // Reset if gesture is terminated
+          Animated.spring(scale, {
+            toValue: 1,
+            useNativeDriver: false,
+          }).start();
+          pan.setValue({ x: 0, y: 0 });
+          isDragging.current = false;
         },
       })
     ).current;
@@ -203,30 +276,23 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
         ]}
         {...panResponder.panHandlers}
       >
-        <Image source={{ uri: item.image }} style={styles.itemImage} />
-        <Text style={styles.itemName} numberOfLines={2}>
-          {item.name}
-        </Text>
-        {item.color && (
-          <Text style={styles.itemDetail}>{item.color}</Text>
-        )}
-        {item.brand && (
-          <Text style={styles.itemDetail}>{item.brand}</Text>
-        )}
+        <View style={styles.itemContent}>
+          <Image source={{ uri: item.image }} style={styles.itemImage} />
+          <Text style={styles.itemName} numberOfLines={2}>
+            {item.name}
+          </Text>
+          {item.color && (
+            <Text style={styles.itemDetail}>{item.color}</Text>
+          )}
+          {item.brand && (
+            <Text style={styles.itemDetail}>{item.brand}</Text>
+          )}
+        </View>
       </Animated.View>
     );
   };
 
-  if (!isAuthenticated) {
-    return (
-      <View style={styles.container}>
-        <View style={styles.authContainer}>
-          <Text style={styles.authText}>Please log in to access your items</Text>
-        </View>
-      </View>
-    );
-  }
-
+  // Loading state
   if (loading) {
     return (
       <View style={styles.container}>
@@ -238,6 +304,7 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <View style={styles.container}>
@@ -251,6 +318,7 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
     );
   }
 
+  // No items state
   if (allItems.length === 0) {
     return (
       <View style={styles.container}>
@@ -264,16 +332,18 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
     );
   }
 
+  // Main render
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Your Items</Text>
         <Text style={styles.headerSubtitle}>
-          Drag items to the canvas above • {filteredItems.length} of {allItems.length} shown
+          Drag items upward to canvas • {filteredItems.length} of {allItems.length} shown
         </Text>
       </View>
 
-      {/* Filter Section */}
+      {/* Category Filter Section */}
       {itemTypes.length > 0 && (
         <View style={styles.filterSection}>
           <ScrollView
@@ -282,14 +352,15 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
             contentContainerStyle={styles.scrollContentContainer}
           >
             {/* All button */}
-            <PopupScreenButton
+            <CategoryButton
               type="All"
               isSelected={selectedTypeId === 'All'}
               onPress={() => handleTypeSelect('All')}
             />
+            
             {/* Item type buttons */}
             {itemTypes.map((itemType) => (
-              <PopupScreenButton
+              <CategoryButton
                 key={itemType._id}
                 type={itemType.name}
                 isSelected={selectedTypeId === itemType._id}
@@ -301,15 +372,21 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
       )}
 
       {/* Items Grid */}
-      <FlatList
-        data={filteredItems}
-        keyExtractor={(item) => item._id}
-        renderItem={({ item }) => <DraggableItem item={item} />}
-        numColumns={3}
-        columnWrapperStyle={filteredItems.length > 0 ? styles.row : undefined}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
-        ListEmptyComponent={() => (
+      <View style={styles.itemsContainer}>
+        {filteredItems.length > 0 ? (
+          <FlatList
+            data={filteredItems}
+            keyExtractor={(item) => item._id}
+            renderItem={({ item }) => <DraggableItem item={item} />}
+            numColumns={3}
+            columnWrapperStyle={styles.row}
+            contentContainerStyle={styles.listContainer}
+            showsVerticalScrollIndicator={false}
+            bounces={false}
+            removeClippedSubviews={false}
+            scrollEnabled={true}
+          />
+        ) : (
           <View style={styles.emptyFilterContainer}>
             <Text style={styles.emptyFilterText}>
               No items in this category
@@ -322,7 +399,7 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
             </TouchableOpacity>
           </View>
         )}
-      />
+      </View>
     </View>
   );
 };
@@ -333,10 +410,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   header: {
+    paddingTop: 50,
     paddingHorizontal: 20,
     paddingBottom: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    backgroundColor: '#fff',
   },
   headerTitle: {
     fontSize: 18,
@@ -350,15 +429,41 @@ const styles = StyleSheet.create({
   },
   filterSection: {
     backgroundColor: '#f8f8f8',
-    paddingVertical: 15,
-    paddingHorizontal: 10,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
   },
   scrollContentContainer: {
+    paddingHorizontal: 15,
+    gap: 8,
     alignItems: 'center',
-    paddingHorizontal: 10,
-    gap: 10,
+  },
+  categoryButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    minWidth: 60,
+    alignItems: 'center',
+  },
+  categoryButtonSelected: {
+    backgroundColor: '#007AFF',
+    borderColor: '#007AFF',
+  },
+  categoryButtonText: {
+    fontSize: 14,
+    color: '#666',
+    fontWeight: '500',
+  },
+  categoryButtonTextSelected: {
+    color: '#fff',
+    fontWeight: '600',
+  },
+  itemsContainer: {
+    flex: 1,
+    backgroundColor: '#fff',
   },
   listContainer: {
     padding: 15,
@@ -366,16 +471,25 @@ const styles = StyleSheet.create({
   },
   row: {
     justifyContent: 'space-around',
+    marginBottom: 5,
   },
   item: {
     alignItems: 'center',
     width: 100,
-    padding: 10,
-    backgroundColor: '#f9f9f9',
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: '#eee',
     marginBottom: 15,
+    backgroundColor: 'transparent',
+  },
+  itemContent: {
+    alignItems: 'center',
+    width: '100%',
+    padding: 10,
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   itemImage: {
     width: 70,
@@ -469,17 +583,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
-  },
-  authContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  authText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
   },
 });
 

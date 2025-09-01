@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // API Configuration
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://192.168.8.124:3000';
 const TOKEN_KEY = '@outfitly_token';
 
 // Create axios instance
