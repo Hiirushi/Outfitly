@@ -173,31 +173,10 @@ const ClosetSingle = () => {
           </View>
           <View className="bg-white rounded-2xl p-6 border border-white/50 drop-shadow-sm mb-6">
             <Text className="text-lg font-semibold text-gray-900 mb-4">Usage Analytics</Text>
-
-            <View className="flex-row justify-between">
-              <View className="items-center flex-1">
-                <View className="w-12 h-12 bg-gradient-to-br from-rose-500 to-pink-500 rounded-xl flex items-center justify-center mb-2">
-                  <Ionicons name="trending-up" size={24} color="white" />
-                </View>
-                <Text className="text-xl font-bold text-gray-900">{item.usageCount || 0}</Text>
-                <Text className="text-xs text-gray-600">Times Worn</Text>
-              </View>
-
-              <View className="items-center flex-1">
-                <View className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center mb-2">
-                  <Ionicons name="calendar" size={24} color="white" />
-                </View>
-                <Text className="text-xl font-bold text-gray-900">5</Text>
-                <Text className="text-xs text-gray-600">In Outfits</Text>
-              </View>
-
-              <View className="items-center flex-1">
-                <View className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-green-500 rounded-xl flex items-center justify-center mb-2">
-                  <Ionicons name="color-palette" size={24} color="white" />
-                </View>
-                <Text className="text-xl font-bold text-gray-900">8</Text>
-                <Text className="text-xs text-gray-600">Style Matches</Text>
-              </View>
+            <View className="items-center">
+              <Ionicons name="trending-up" size={32} color="#ec4899" style={{ marginBottom: 8 }} />
+              <Text className="text-xl font-bold text-gray-900">{item.usageCount || 0}</Text>
+              <Text className="text-xs text-gray-600">Times Worn</Text>
             </View>
           </View>
         </View>

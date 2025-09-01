@@ -23,6 +23,7 @@ interface Item {
   };
   createdAt: string;
   updatedAt: string;
+  usageCount?: number;
 }
 
 const ClosetType = () => {
@@ -77,6 +78,8 @@ const ClosetType = () => {
     { key: 'oldest', label: 'Old → New' },
     { key: 'name-asc', label: 'Name A → Z' },
     { key: 'name-desc', label: 'Name Z → A' },
+    { key: 'most-used', label: 'Most Used' },
+    { key: 'least-used', label: 'Least Used' },
   ];
 
   // Helper function to map color names to hex codes for display
@@ -188,6 +191,10 @@ const ClosetType = () => {
             return a.name.localeCompare(b.name);
           case 'name-desc':
             return b.name.localeCompare(a.name);
+          case 'most-used':
+            return (b.usageCount || 0) - (a.usageCount || 0);
+          case 'least-used':
+            return (a.usageCount || 0) - (b.usageCount || 0);
           default:
             return 0;
         }

@@ -206,20 +206,16 @@ export default function Home() {
 
         {/* Stats section */}
         <View className="flex-row gap-4 justify-around ">
-          <View className="items-center flex-1 py-3 rounded-xl bg-[#FCFCFD]">
-            <Text className="text-2xl font-bold text-gray-800 mb-1">{totalItems}</Text>
-            <Text className="text-xs text-gray-600 font-medium tracking-wide">TOTAL ITEMS</Text>
-          </View>
-
-          <View className="items-center flex-1 py-3 rounded-xl bg-[#FCFCFD]">
-            <Text className="text-2xl font-bold text-[#E91E63] mb-1">12</Text>
-            <Text className="text-xs text-gray-600 font-medium tracking-wide">OUTFITS</Text>
-          </View>
-
-          <View className="items-center flex-1 py-3 rounded-xl bg-[#FCFCFD]">
-            <Text className="text-2xl font-bold text-[#9C27B0] mb-1">5</Text>
-            <Text className="text-xs text-gray-600 font-medium tracking-wide">THIS WEEK</Text>
-          </View>
+            <View className="flex-1 flex-row justify-around gap-4">
+            <View className="items-center flex-1 py-3 rounded-xl bg-[#FCFCFD]">
+              <Text className="text-2xl font-bold text-gray-800 mb-1">{totalItems}</Text>
+              <Text className="text-xs text-gray-600 font-medium tracking-wide">TOTAL ITEMS</Text>
+            </View>
+            <View className="items-center flex-1 py-3 rounded-xl bg-[#FCFCFD]">
+              <Text className="text-2xl font-bold text-gray-800 mb-1">{categories.length}</Text>
+              <Text className="text-xs text-gray-600 font-medium tracking-wide">CATEGORIES</Text>
+            </View>
+            </View>
         </View>
       </View>
     </View>
