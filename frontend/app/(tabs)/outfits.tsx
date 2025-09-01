@@ -48,7 +48,7 @@ export interface IOutfit {
 export default function Outfit() {
   const router = useRouter();
   const { isAuthenticated, logout } = useAuth();
-  
+
   // State management
   const [outfits, setOutfits] = useState<IOutfit[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -67,7 +67,7 @@ export default function Outfit() {
 
       if (!isAuthenticated) {
         Alert.alert('Authentication Required', 'Please log in to view your outfits.', [
-          { text: 'OK', onPress: () => router.replace('/auth/login') }
+          { text: 'OK', onPress: () => router.replace('/auth/login') },
         ]);
         return;
       }
@@ -78,17 +78,20 @@ export default function Outfit() {
       setOutfits(fetchedOutfits);
     } catch (err: any) {
       console.error('Error fetching outfits:', err);
-      
+
       if (err.response?.status === 401) {
         Alert.alert('Session Expired', 'Please log in again.', [
-          { text: 'OK', onPress: () => {
-            logout();
-            router.replace('/auth/login');
-          }}
+          {
+            text: 'OK',
+            onPress: () => {
+              logout();
+              router.replace('/auth/login');
+            },
+          },
         ]);
         return;
       }
-      
+
       const errorMessage = err.response?.data?.message || err.message || 'Failed to load outfits';
       setError(errorMessage);
       Alert.alert('Error', 'Failed to load outfits. Please check your connection and try again.');
@@ -107,7 +110,7 @@ export default function Outfit() {
         setLoading(false);
         router.replace('/auth/login');
       }
-    }, [isAuthenticated])
+    }, [isAuthenticated]),
   );
 
   // Pull to refresh handler
@@ -127,10 +130,7 @@ export default function Outfit() {
         <View style={styles.authContainer}>
           <Text style={styles.authTitle}>Authentication Required</Text>
           <Text style={styles.authText}>Please log in to view your outfits.</Text>
-          <TouchableOpacity 
-            style={styles.authButton} 
-            onPress={() => router.replace('/auth/login')}
-          >
+          <TouchableOpacity style={styles.authButton} onPress={() => router.replace('/auth/login')}>
             <Text style={styles.authButtonText}>Go to Login</Text>
           </TouchableOpacity>
         </View>
@@ -184,9 +184,9 @@ export default function Outfit() {
         data={outfits}
         keyExtractor={(item) => item._id}
         renderItem={({ item }) => (
-          <OutfitCard 
-            name={item.name} 
-            imageUrl={item.image_url} 
+          <OutfitCard
+            name={item.name}
+            imageUrl={item.image_url}
             outfitId={item._id}
             items={item.items} // Pass the items array
           />
@@ -209,6 +209,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     padding: 10,
+    marginTop: 70,
   },
   row: {
     justifyContent: 'space-around',

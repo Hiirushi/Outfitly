@@ -15,7 +15,7 @@ export interface IOutfit {
 const Planner: React.FC = () => {
   const router = useRouter();
   const { isAuthenticated, logout } = useAuth();
-  
+
   const [outfits, setOutfits] = useState<IOutfit[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +28,7 @@ const Planner: React.FC = () => {
 
       if (!isAuthenticated) {
         Alert.alert('Authentication Required', 'Please log in to view planned outfits.', [
-          { text: 'OK', onPress: () => router.replace('/auth/login') }
+          { text: 'OK', onPress: () => router.replace('/auth/login') },
         ]);
         return;
       }
@@ -42,10 +42,13 @@ const Planner: React.FC = () => {
 
       if (err.response?.status === 401) {
         Alert.alert('Session Expired', 'Please log in again.', [
-          { text: 'OK', onPress: () => {
-            logout();
-            router.replace('/auth/login');
-          }}
+          {
+            text: 'OK',
+            onPress: () => {
+              logout();
+              router.replace('/auth/login');
+            },
+          },
         ]);
         return;
       }
@@ -67,12 +70,12 @@ const Planner: React.FC = () => {
         setLoading(false);
         router.replace('/auth/login');
       }
-    }, [isAuthenticated])
+    }, [isAuthenticated]),
   );
 
   // Get outfits for a specific date
   const getOutfitsForDate = (dateString: string): IOutfit[] => {
-    return outfits.filter(outfit => {
+    return outfits.filter((outfit) => {
       if (!outfit.plannedDate) return false;
       const outfitDate = new Date(outfit.plannedDate).toISOString().split('T')[0];
       return outfitDate === dateString;
@@ -81,21 +84,21 @@ const Planner: React.FC = () => {
 
   const handleDayPress = (day: { dateString: string }) => {
     setSelectedDate(day.dateString);
-    
+
     // Get outfits for the selected date
     const outfitsForDate = getOutfitsForDate(day.dateString);
-    
+
     if (outfitsForDate.length > 0) {
       // Navigate to the first outfit if there are outfits for this date
       handleOutfitPress(outfitsForDate[0]._id);
     } else {
       // Navigate to canvas/outfit creation page for dates without outfits
-      router.push({ 
-        pathname: '/canvas', 
-        params: { 
+      router.push({
+        pathname: '/canvas',
+        params: {
           plannedDate: day.dateString,
-          autoOpenItems: 'true'
-        } 
+          autoOpenItems: 'true',
+        },
       });
     }
   };
@@ -165,6 +168,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
+    marginTop: 50,
   },
   listHeader: {
     padding: 12,

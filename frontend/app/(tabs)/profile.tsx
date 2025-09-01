@@ -43,7 +43,7 @@ export default function ProfileScreen() {
     try {
       setLoading(true);
       const result = await updateProfile({ name: name.trim(), email: email.toLowerCase().trim() });
-      
+
       if (result.success) {
         setIsEditing(false);
         Alert.alert('Success', 'Profile updated successfully');
@@ -59,14 +59,14 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     console.log('Logout button pressed');
-    
+
     try {
       console.log('Starting logout process');
-      
+
       // Clear AsyncStorage cache
       await AsyncStorage.clear();
       console.log('AsyncStorage cleared successfully');
-      
+
       // Call the logout function from AuthContext
       if (logout) {
         console.log('Calling logout function');
@@ -98,19 +98,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       <View style={styles.header}>
-        <View style={styles.avatarContainer}>
-          {user?.profilePicture ? (
-            <Image source={{ uri: user.profilePicture }} style={styles.avatar} />
-          ) : (
-            <View style={styles.avatarPlaceholder}>
-              <Ionicons name="person" size={50} color="#666" />
-            </View>
-          )}
-        </View>
-        
-        <Text style={styles.welcomeText}>
-          {isEditing ? 'Edit Profile' : `Hello, ${user?.name}!`}
-        </Text>
+        <Text style={styles.welcomeText}>{isEditing ? 'Edit Profile' : `Hello, ${user?.name}!`}</Text>
         <Text style={styles.memberSince}>
           Member since {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
         </Text>
@@ -118,7 +106,7 @@ export default function ProfileScreen() {
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Profile Information</Text>
-        
+
         <View style={styles.card}>
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Full Name</Text>
@@ -154,9 +142,7 @@ export default function ProfileScreen() {
           {user?.lastLogin && (
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Last Login</Text>
-              <Text style={styles.value}>
-                {new Date(user.lastLogin).toLocaleString()}
-              </Text>
+              <Text style={styles.value}>{new Date(user.lastLogin).toLocaleString()}</Text>
             </View>
           )}
         </View>
@@ -164,14 +150,10 @@ export default function ProfileScreen() {
         <View style={styles.buttonContainer}>
           {isEditing ? (
             <View style={styles.editButtons}>
-              <TouchableOpacity
-                style={[styles.button, styles.cancelButton]}
-                onPress={cancelEdit}
-                disabled={loading}
-              >
+              <TouchableOpacity style={[styles.button, styles.cancelButton]} onPress={cancelEdit} disabled={loading}>
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={[styles.button, styles.saveButton]}
                 onPress={handleUpdateProfile}
@@ -185,10 +167,7 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
           ) : (
-            <TouchableOpacity
-              style={[styles.button, styles.editButton]}
-              onPress={() => setIsEditing(true)}
-            >
+            <TouchableOpacity style={[styles.button, styles.editButton]} onPress={() => setIsEditing(true)}>
               <Ionicons name="create-outline" size={20} color="white" />
               <Text style={styles.editButtonText}>Edit Profile</Text>
             </TouchableOpacity>
@@ -196,10 +175,7 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      <TouchableOpacity
-        style={[styles.button, styles.logoutButton]}
-        onPress={handleLogout}
-      >
+      <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
         <Ionicons name="log-out-outline" size={20} color="white" />
         <Text style={styles.logoutButtonText}>Logout</Text>
       </TouchableOpacity>
@@ -211,6 +187,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f8f9fa',
+    marginTop: 40,
   },
   contentContainer: {
     padding: 20,

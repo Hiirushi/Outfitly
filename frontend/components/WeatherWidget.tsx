@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, ActivityIndicator, StyleSheet, Image, FlatList, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
+  StyleSheet,
+  Image,
+  FlatList,
+  Alert,
+} from 'react-native';
 import axios from 'axios';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 
 // Use environment variable WEATHER_API_BASE when available; fallback to localhost for development
-const API_BASE = (process.env && process.env.WEATHER_API_BASE) || 'http://localhost:3000';
+const API_BASE = (process.env && process.env.WEATHER_API_BASE) || 'http://192.168.8.124:3000';
 
 interface LocationCoords {
   latitude: number;
@@ -27,7 +37,7 @@ const WeatherWidget: React.FC = () => {
     try {
       console.log('=== LOCATION PERMISSION REQUEST ===');
       const { status } = await Location.requestForegroundPermissionsAsync();
-      
+
       if (status !== 'granted') {
         Alert.alert('Permission Denied', 'Location permission is required.');
         return null;
@@ -71,7 +81,7 @@ const WeatherWidget: React.FC = () => {
           latitude: loc.coords.latitude,
           longitude: loc.coords.longitude,
         });
-      }
+      },
     );
 
     setWatcher(sub);
@@ -80,7 +90,7 @@ const WeatherWidget: React.FC = () => {
   const fetchWeather = async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const coords = await getLocation();
       if (!coords) {
@@ -91,11 +101,11 @@ const WeatherWidget: React.FC = () => {
 
       setLocation(coords);
 
-      const res = await axios.get(`${API_BASE}/api/weather`, { 
+      const res = await axios.get(`${API_BASE}/api/weather`, {
         params: { lat: coords.latitude, lon: coords.longitude },
         timeout: 10000,
       });
-      
+
       const curr = res?.data?.current;
       const days = res?.data?.forecast?.forecastday;
       const locationData = res?.data?.location;
@@ -118,7 +128,6 @@ const WeatherWidget: React.FC = () => {
 
       setCurrent(curr ?? null);
       setForecast(days ?? null);
-      
     } catch (err: any) {
       console.error('Weather fetch error:', err);
       setError('Failed to load weather');
@@ -129,7 +138,7 @@ const WeatherWidget: React.FC = () => {
   const refreshLocation = async () => {
     console.log('=== FORCING FRESH GPS ===');
     startWatching(); // start live updates
-    fetchWeather();  // also trigger weather fetch
+    fetchWeather(); // also trigger weather fetch
   };
 
   const openModal = () => {
@@ -191,17 +200,17 @@ const WeatherWidget: React.FC = () => {
   return (
     <View>
       <TouchableOpacity style={styles.iconButton} onPress={openModal}>
-        <Ionicons name="location-outline" size={26} color="#fff" />
+        <Ionicons name="cloud-outline" size={26} color="#fff" />
       </TouchableOpacity>
 
       <Modal visible={visible} transparent animationType="slide" onRequestClose={() => setVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.titleRow}>
-              <Ionicons name="location-outline" size={20} color="#333" />
+              <Ionicons name="cloud-outline" size={20} color="#333" />
               <Text style={styles.modalTitle}>{locationName}</Text>
             </View>
-            
+
             {loading ? (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#007AFF" />

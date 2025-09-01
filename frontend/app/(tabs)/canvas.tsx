@@ -116,7 +116,7 @@ export default function Canvas() {
       if (!hasInitialized) {
         setHasInitialized(true);
       }
-    }, [params.plannedDate, params.autoOpenItems, hasInitialized, cameFromCalendar])
+    }, [params.plannedDate, params.autoOpenItems, hasInitialized, cameFromCalendar]),
   );
 
   const checkAuthentication = async () => {
@@ -392,10 +392,7 @@ export default function Canvas() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <View style={styles.container}>
           {/* Weather widget top-left */}
@@ -417,12 +414,10 @@ export default function Canvas() {
           <View style={styles.canvasArea}>
             {droppedItems.length === 0 && (
               <View style={styles.dropZoneHint}>
-                <Ionicons name="arrow-down" size={24} color="#ccc" />
                 <Text style={styles.dropZoneText}>
-                  {plannedDate 
+                  {plannedDate
                     ? `Planning outfit for ${plannedDate}\nDrag items here from the popup below`
-                    : 'Drag items here from the popup below'
-                  }
+                    : 'Drag items here from the popup below'}
                 </Text>
               </View>
             )}
@@ -499,9 +494,7 @@ export default function Canvas() {
                       }}
                       disabled={saving}
                     >
-                      <Text style={{ color: plannedDate ? '#000' : '#999' }}>
-                        {plannedDate || 'YYYY-MM-DD'}
-                      </Text>
+                      <Text style={{ color: plannedDate ? '#000' : '#999' }}>{plannedDate || 'YYYY-MM-DD'}</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       onPress={() => {
@@ -531,11 +524,7 @@ export default function Canvas() {
 
                   {/* Web Date Picker */}
                   {Platform.OS === 'web' && webDate && (
-                    <ReactDatePicker
-                      selected={webDate}
-                      onChange={handleWebDateChange}
-                      inline
-                    />
+                    <ReactDatePicker selected={webDate} onChange={handleWebDateChange} inline />
                   )}
                 </View>
 
@@ -629,7 +618,7 @@ const styles = StyleSheet.create({
   },
   dropZoneHint: {
     position: 'absolute',
-    top: '40%',
+    top: '55%',
     left: '50%',
     transform: [{ translateX: -100 }, { translateY: -50 }],
     alignItems: 'center',
@@ -677,7 +666,7 @@ const styles = StyleSheet.create({
   },
   add: {
     position: 'absolute',
-    bottom: 30,
+    bottom: 140,
     right: 30,
     width: 60,
     height: 60,
@@ -812,7 +801,7 @@ const styles = StyleSheet.create({
   },
   weatherWrap: {
     position: 'absolute',
-    top: 12,
+    top: 60,
     left: 12,
     zIndex: 20,
   },
