@@ -53,6 +53,14 @@ export default function RegisterScreen() {
       newErrors.password = 'Password is required';
     } else if (password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
+    } else if (!/(?=.*[a-z])/.test(password)) {
+      newErrors.password = 'Password must contain at least one lowercase letter';
+    } else if (!/(?=.*[A-Z])/.test(password)) {
+      newErrors.password = 'Password must contain at least one uppercase letter';
+    } else if (!/(?=.*\d)/.test(password)) {
+      newErrors.password = 'Password must contain at least one digit';
+    } else if (!/(?=.*[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?])./.test(password)) {
+      newErrors.password = 'Password must contain at least one special character';
     }
 
     if (!confirmPassword) {
@@ -70,13 +78,8 @@ export default function RegisterScreen() {
 
     try {
       setLoading(true);
-      const result = await register(
-        name.trim(),
-        email.toLowerCase().trim(),
-        password,
-        confirmPassword
-      );
-      
+      const result = await register(name.trim(), email.toLowerCase().trim(), password, confirmPassword);
+
       if (result.success) {
         router.replace('/(tabs)');
       } else {
@@ -90,15 +93,9 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <LinearGradient
-        colors={['#667eea', '#764ba2']}
-        style={styles.gradient}
-      >
-        <ScrollView 
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <LinearGradient colors={['#667eea', '#764ba2']} style={styles.gradient}>
+        <ScrollView
           contentContainerStyle={styles.scrollContainer}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
@@ -130,7 +127,7 @@ export default function RegisterScreen() {
                     value={name}
                     onChangeText={(text) => {
                       setName(text);
-                      if (errors.name) setErrors({...errors, name: undefined});
+                      if (errors.name) setErrors({ ...errors, name: undefined });
                     }}
                     autoCapitalize="words"
                     autoCorrect={false}
@@ -149,7 +146,7 @@ export default function RegisterScreen() {
                     value={email}
                     onChangeText={(text) => {
                       setEmail(text);
-                      if (errors.email) setErrors({...errors, email: undefined});
+                      if (errors.email) setErrors({ ...errors, email: undefined });
                     }}
                     keyboardType="email-address"
                     autoCapitalize="none"
@@ -169,22 +166,18 @@ export default function RegisterScreen() {
                     value={password}
                     onChangeText={(text) => {
                       setPassword(text);
-                      if (errors.password) setErrors({...errors, password: undefined});
+                      if (errors.password) setErrors({ ...errors, password: undefined });
                     }}
                     secureTextEntry={!showPassword}
                     autoCapitalize="none"
                   />
-                  <TouchableOpacity
-                    style={styles.eyeButton}
-                    onPress={() => setShowPassword(!showPassword)}
-                  >
-                    <Ionicons
-                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                      size={20}
-                      color="#9CA3AF"
-                    />
+                  <TouchableOpacity style={styles.eyeButton} onPress={() => setShowPassword(!showPassword)}>
+                    <Ionicons name={showPassword ? 'eye-off-outline' : 'eye-outline'} size={20} color="#9CA3AF" />
                   </TouchableOpacity>
                 </View>
+                <Text style={styles.passwordCriteriaText}>
+                  Password must be at least 6 characters and include uppercase, lowercase, digit, and special character.
+                </Text>
                 {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
               </View>
 
@@ -198,7 +191,7 @@ export default function RegisterScreen() {
                     value={confirmPassword}
                     onChangeText={(text) => {
                       setConfirmPassword(text);
-                      if (errors.confirmPassword) setErrors({...errors, confirmPassword: undefined});
+                      if (errors.confirmPassword) setErrors({ ...errors, confirmPassword: undefined });
                     }}
                     secureTextEntry={!showConfirmPassword}
                     autoCapitalize="none"
@@ -222,10 +215,7 @@ export default function RegisterScreen() {
                 onPress={handleRegister}
                 disabled={loading}
               >
-                <LinearGradient
-                  colors={['#667eea', '#764ba2']}
-                  style={styles.buttonGradient}
-                >
+                <LinearGradient colors={['#667eea', '#764ba2']} style={styles.buttonGradient}>
                   {loading ? (
                     <ActivityIndicator color="white" />
                   ) : (
@@ -261,6 +251,12 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: 'center',
     padding: 20,
+  },
+  passwordCriteriaText: {
+    color: '#6B7280',
+    fontSize: 12,
+    marginTop: 4,
+    marginBottom: 2,
   },
   header: {
     alignItems: 'center',
@@ -361,7 +357,6 @@ const styles = StyleSheet.create({
   registerButtonText: {
     color: 'white',
     fontSize: 16,
-    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',

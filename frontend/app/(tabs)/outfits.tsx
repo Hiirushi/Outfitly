@@ -34,15 +34,13 @@ export interface IOutfit {
   _id: string;
   name: string;
   occasion?: string;
-  // keep misspelled property for backwards compatibility
-  occassion?: string;
   plannedDate?: string | null;
   user: string;
   items: IOutfitItem[];
   createdDate: string;
   createdAt: string;
   updatedAt: string;
-  image_url?: any; // Keep for backward compatibility
+  image_url?: any;
 }
 
 export default function Outfit() {
@@ -180,6 +178,9 @@ export default function Outfit() {
 
   return (
     <View style={styles.container}>
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>Outfits</Text>
+      </View>
       <FlatList
         data={outfits}
         keyExtractor={(item) => item._id}
@@ -206,6 +207,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  headerContainer: {
+    marginTop: 50,
+    marginBottom: 10,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#B91C7C',
+    marginBottom: 2,
+  },
+  subtitle: {
+    fontSize: 15,
+    color: '#666',
+    marginBottom: 8,
   },
   listContainer: {
     padding: 10,

@@ -17,7 +17,7 @@ export const itemTypesAPI = {
     return response.data;
   },
 
-  // Create new item type (if you need this functionality)
+  // Create new item type
   createType: async (typeData: { name: string; description?: string }) => {
     console.log('Creating item type...');
     const response = await apiClient.post('/itemType', typeData);

@@ -51,7 +51,6 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // EFFICIENT DATA FETCHING - Only 2 API calls total
   const fetchData = async (): Promise<void> => {
     try {
       setLoading(true);
@@ -64,17 +63,17 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
 
       console.log('Fetching data for outfit creation...');
 
-      // Step 1: Fetch item types (single API call - global data)
+      // Fetch item types (single API call - global data)
       const itemTypesResponse = await itemTypesAPI.getTypes();
       console.log('Item types fetched:', itemTypesResponse.length);
 
-      // Step 2: Fetch ALL user items (single API call - user-specific data)
+      // Fetch ALL user items (single API call - user-specific data)
       const userItemsResponse = await itemsAPI.getItems();
       const userItems: Item[] = userItemsResponse.success ? userItemsResponse.data : [];
       
       console.log('User items fetched:', userItems.length);
 
-      // Step 3: Calculate item counts for each type (client-side filtering)
+      // Calculate item counts for each type (client-side filtering)
       const typesWithCounts: ItemType[] = [];
 
       itemTypesResponse.forEach((itemType: any) => {
@@ -126,7 +125,7 @@ const ItemsPopUp: React.FC<ItemsPopUpProps> = ({ onItemDrag }) => {
     }
   };
 
-  // CLIENT-SIDE FILTERING - No additional API calls needed
+  // CLIENT-SIDE FILTERING
   const handleTypeSelect = (typeId: string) => {
     console.log('Filtering items by type:', typeId);
     setSelectedTypeId(typeId);

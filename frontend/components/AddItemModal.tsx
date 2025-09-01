@@ -16,7 +16,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
-import { itemsAPI } from '../services/api'; // Use our authenticated API
+import { itemsAPI } from '../services/api';
 import { itemTypesAPI } from '@/services/itemTypesAPI';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -41,6 +41,12 @@ interface ItemFormData {
 interface ItemType {
   _id: string;
   name: string;
+}
+
+interface FormErrors {
+  name?: string;
+  image?: string;
+  brand?: string;
 }
 
 const DRESS_CODES = [
@@ -115,6 +121,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
   const [types, setTypes] = useState<ItemType[]>([]);
   const [typesLoading, setTypesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   // Check authentication when modal becomes visible
   useEffect(() => {
@@ -168,6 +175,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
       removeBg: true,
     });
     setError(null);
+    setFormErrors({});
   };
 
   const handleClose = () => {
@@ -175,7 +183,21 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
     onClose();
   };
 
+  // Clear specific field error when user starts typing/selecting
+  const clearFieldError = (fieldName: keyof FormErrors) => {
+    if (formErrors[fieldName]) {
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[fieldName];
+        return newErrors;
+      });
+    }
+  };
+
   const pickImage = async () => {
+    // Clear image error when user attempts to pick an image
+    clearFieldError('image');
+
     try {
       const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -237,21 +259,42 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
   };
 
   const validateForm = (): boolean => {
+    const errors: FormErrors = {};
+
+    // Authentication check
     if (!isAuthenticated) {
       Alert.alert('Authentication Error', 'Please log in to add items');
       return false;
     }
-    
+
+    // Name validation
     if (!formData.name.trim()) {
-      Alert.alert('Validation Error', 'Please enter an item name');
-      return false;
+      errors.name = 'Item name is required';
+    } else if (formData.name.trim().length < 2) {
+      errors.name = 'Item name must be at least 2 characters long';
+    } else if (formData.name.trim().length > 100) {
+      errors.name = 'Item name must be less than 100 characters';
     }
-    
+
+    // Image validation
     if (!formData.image) {
-      Alert.alert('Validation Error', 'Please select an image');
+      errors.image = 'Please select an image for your item';
+    }
+
+    // Brand validation (optional but if provided, should meet criteria)
+    if (formData.brand.trim() && formData.brand.trim().length > 50) {
+      errors.brand = 'Brand name must be less than 50 characters';
+    }
+
+    setFormErrors(errors);
+
+    // If there are errors, show an alert with the first error
+    if (Object.keys(errors).length > 0) {
+      const firstError = Object.values(errors)[0];
+      Alert.alert('Validation Error', firstError);
       return false;
     }
-    
+
     return true;
   };
 
@@ -276,7 +319,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
       // Add optional fields
       if (formData.color) formDataToSend.append('color', formData.color);
       if (formData.dressCode) formDataToSend.append('dressCode', formData.dressCode);
-      if (formData.brand) formDataToSend.append('brand', formData.brand);
+      if (formData.brand.trim()) formDataToSend.append('brand', formData.brand.trim());
       if (formData.material) formDataToSend.append('material', formData.material);
       if (formData.typeId) formDataToSend.append('itemType', formData.typeId);
       
@@ -400,6 +443,24 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
   if (!isAuthenticated) {
     return null;
   }
+
+  // Helper function to render error text
+  const renderErrorText = (fieldName: keyof FormErrors) => {
+    if (formErrors[fieldName]) {
+      return (
+        <Text style={styles.errorText}>{formErrors[fieldName]}</Text>
+      );
+    }
+    return null;
+  };
+
+  // Helper function to get input style with error state
+  const getInputStyle = (fieldName: keyof FormErrors, baseStyle: any) => {
+    return [
+      baseStyle,
+      formErrors[fieldName] && styles.inputError
+    ];
+  };
 
   const renderTypePicker = () => (
     <Modal visible={showTypePicker} transparent animationType="slide">
@@ -564,7 +625,10 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
             {/* Image Picker */}
             <View style={styles.imageSection}>
               <Text style={styles.label}>Photo *</Text>
-              <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+              <TouchableOpacity 
+                style={getInputStyle('image', styles.imagePicker)} 
+                onPress={pickImage}
+              >
                 {formData.image ? (
                   <Image source={{ uri: formData.image }} style={styles.selectedImage} />
                 ) : (
@@ -574,6 +638,7 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
                   </View>
                 )}
               </TouchableOpacity>
+              {renderErrorText('image')}
 
               {/* Background Removal Toggle */}
               <View style={styles.toggleSection}>
@@ -599,13 +664,17 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Name *</Text>
               <TextInput
-                style={styles.input}
+                style={getInputStyle('name', styles.input)}
                 value={formData.name}
-                onChangeText={(text) => setFormData((prev) => ({ ...prev, name: text }))}
+                onChangeText={(text) => {
+                  setFormData((prev) => ({ ...prev, name: text }));
+                  clearFieldError('name');
+                }}
                 placeholder="Enter item name"
                 placeholderTextColor="#999"
                 maxLength={100}
               />
+              {renderErrorText('name')}
             </View>
 
             {/* Type - Optional */}
@@ -650,13 +719,17 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
             <View style={styles.inputGroup}>
               <Text style={styles.label}>Brand</Text>
               <TextInput
-                style={styles.input}
+                style={getInputStyle('brand', styles.input)}
                 value={formData.brand}
-                onChangeText={(text) => setFormData((prev) => ({ ...prev, brand: text }))}
+                onChangeText={(text) => {
+                  setFormData((prev) => ({ ...prev, brand: text }));
+                  clearFieldError('brand');
+                }}
                 placeholder="Enter brand"
                 placeholderTextColor="#999"
                 maxLength={50}
               />
+              {renderErrorText('brand')}
             </View>
 
             {/* Material - Optional */}
@@ -793,6 +866,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: '#fff',
   },
+  inputError: {
+    borderColor: '#ff4444',
+    borderWidth: 2,
+  },
   textArea: {
     height: 80,
     textAlignVertical: 'top',
@@ -814,6 +891,12 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     color: '#999',
+  },
+  errorText: {
+    color: '#ff4444',
+    fontSize: 14,
+    marginTop: 4,
+    marginLeft: 4,
   },
   pickerOverlay: {
     flex: 1,
@@ -883,12 +966,6 @@ const styles = StyleSheet.create({
   errorContainer: {
     alignItems: 'center',
     paddingVertical: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    color: '#ff4444',
-    textAlign: 'center',
-    marginBottom: 10,
   },
   retryButton: {
     paddingHorizontal: 20,

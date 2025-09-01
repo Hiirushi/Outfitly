@@ -13,7 +13,7 @@ interface ItemTypeCardProps {
 const ItemTypeCard: React.FC<ItemTypeCardProps> = ({ category, itemCount, imageUrl, onPress }) => {
   const [isPressed, setIsPressed] = useState(false);
 
-  // Different gradient colors for variety - typed as const to ensure proper typing
+  // Different gradient colors for variety
   const gradients = [
     ['#667eea', '#764ba2'], // Purple-blue
     ['#f093fb', '#f5576c'], // Pink-red

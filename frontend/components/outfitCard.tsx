@@ -22,9 +22,9 @@ interface OutfitItem {
 
 interface OutfitCardProps {
   name: string;
-  imageUrl?: any; // Keep for backward compatibility
+  imageUrl?: any;
   outfitId: string;
-  items?: OutfitItem[]; // Add items array
+  items?: OutfitItem[];
 }
 
 const OutfitCard: React.FC<OutfitCardProps> = ({ name, imageUrl, outfitId, items = [] }) => {
@@ -48,7 +48,7 @@ const OutfitCard: React.FC<OutfitCardProps> = ({ name, imageUrl, outfitId, items
 
   // Function to normalize coordinates for the card container
   const normalizePosition = (x: number, y: number, itemWidth: number, itemHeight: number) => {
-    // Assuming the original canvas was around 500x600 pixels (adjust based on your actual canvas size)
+    // Assuming the original canvas was around 500x600 pixels 
     const originalCanvasWidth = 500;
     const originalCanvasHeight = 600;
     

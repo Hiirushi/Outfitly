@@ -17,9 +17,9 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import ReactDatePicker from 'react-datepicker'; // Import ReactDatePicker
+import ReactDatePicker from 'react-datepicker';
 import DatePicker from 'react-native-date-picker';
-import 'react-datepicker/dist/react-datepicker.css'; // Import styles for react-datepicker
+import 'react-datepicker/dist/react-datepicker.css'; 
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useFocusEffect } from 'expo-router';
 import ItemsPopUp from '@/components/itemsPopUp';
@@ -54,7 +54,6 @@ export default function Canvas() {
   const [datePickerVisible, setDatePickerVisible] = useState(false); // For native platforms
   const [webDate, setWebDate] = useState<Date | null>(null); // For web
 
-  // Track if we came from calendar with a planned date
   const [cameFromCalendar, setCameFromCalendar] = useState(false);
   // Track if this is the first navigation to canvas
   const [hasInitialized, setHasInitialized] = useState(false);
@@ -79,7 +78,7 @@ export default function Canvas() {
       setSaveModalVisible(false);
       setSaving(false);
 
-      // Check if we have a planned date parameter (coming from calendar)
+      // Check if there's a planned date parameter (coming from calendar)
       const incomingPlannedDate = params.plannedDate;
       const hasPlannedDateParam = incomingPlannedDate && typeof incomingPlannedDate === 'string';
 
@@ -297,7 +296,6 @@ export default function Canvas() {
   const handleCancelSave = () => {
     setOutfitName('');
     setOutfitOccasion('');
-    // Don't clear plannedDate here - user might want to continue working
     setSaveModalVisible(false);
   };
 

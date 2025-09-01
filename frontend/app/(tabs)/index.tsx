@@ -50,11 +50,11 @@ export default function Home() {
 
       console.log('Fetching categories with authentication...');
 
-      // Step 1: Fetch item types (single API call - global data)
+      // Fetch item types (single API call - global data)
       const itemTypesResponse = await itemTypesAPI.getTypes();
       console.log('Item types fetched:', itemTypesResponse.length);
 
-      // Step 2: Fetch ALL user items (single API call - user-specific data)
+      // Fetch ALL user items (single API call - user-specific data)
       const userItemsResponse = await itemsAPI.getItems();
       const userItems: Item[] = userItemsResponse.success ? userItemsResponse.data : [];
 
@@ -69,7 +69,7 @@ export default function Home() {
         })),
       );
 
-      // Step 3: Group user items by itemType to create categories
+      // Group user items by itemType to create categories
       const categoriesWithItems: ClosetCategory[] = [];
 
       itemTypesResponse.forEach((itemType: any) => {
@@ -100,7 +100,7 @@ export default function Home() {
         }
       });
 
-      // Step 4: Sort categories by item count (most items first)
+      // Sort categories by item count (most items first)
       const sortedCategories = categoriesWithItems.sort((a, b) => b.items_available - a.items_available);
 
       console.log('Final categories with items:', sortedCategories);
@@ -287,7 +287,6 @@ export default function Home() {
         refreshing={loading}
         onRefresh={handleRefresh}
         showsVerticalScrollIndicator={false}
-        // Add these styles to ensure proper sizing
         style={{ flex: 1 }}
 
       />

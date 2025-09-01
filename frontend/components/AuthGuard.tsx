@@ -14,7 +14,6 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const navigationState = useRootNavigationState();
 
   useEffect(() => {
-    // Don't do anything while loading or navigation isn't ready
     if (isLoading || !navigationState?.key) return;
 
     const inAuthGroup = segments[0] === 'auth';
