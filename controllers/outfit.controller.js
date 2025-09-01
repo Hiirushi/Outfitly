@@ -21,18 +21,18 @@ const getSingleOutfit = async (req, res) => {
   try {
     const userId = req.user.id;
     const outfitId = req.params.id;
-    
-    const outfit = await Outfit.findOne({ 
-      _id: outfitId, 
-      user: userId 
+
+    const outfit = await Outfit.findOne({
+      _id: outfitId,
+      user: userId,
     }).populate("items.item");
-    
+
     if (!outfit) {
-      return res.status(404).json({ 
-        message: "Outfit not found or you don't have permission to access it" 
+      return res.status(404).json({
+        message: "Outfit not found or you don't have permission to access it",
       });
     }
-    
+
     res.status(200).json(outfit);
   } catch (error) {
     console.error(error.message);
@@ -92,18 +92,18 @@ const deleteOutfit = async (req, res) => {
   try {
     const userId = req.user.id;
     const outfitId = req.params.id;
-    
-    const outfit = await Outfit.findOneAndDelete({ 
-      _id: outfitId, 
-      user: userId 
+
+    const outfit = await Outfit.findOneAndDelete({
+      _id: outfitId,
+      user: userId,
     });
-    
+
     if (!outfit) {
-      return res.status(404).json({ 
-        message: "Outfit not found or you don't have permission to delete it" 
+      return res.status(404).json({
+        message: "Outfit not found or you don't have permission to delete it",
       });
     }
-    
+
     res.status(200).json({ message: "Outfit deleted successfully" });
   } catch (error) {
     console.error(error.message);

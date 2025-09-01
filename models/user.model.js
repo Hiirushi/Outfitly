@@ -30,12 +30,10 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
-  // Add the missing isActive field
   isActive: {
     type: Boolean,
     default: true,
   },
-  // Add lastLogin field
   lastLogin: {
     type: Date,
     default: null,

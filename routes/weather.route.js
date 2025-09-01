@@ -5,7 +5,6 @@ const router = express.Router();
 const API_KEY = process.env.WEATHER_API_KEY;
 
 // GET /api/weather?lat=6.9271&lon=79.8612 (coordinates)
-// OR /api/weather?city=Colombo (fallback for city name)
 router.get("/", async (req, res) => {
   const { lat, lon, city } = req.query;
   
@@ -19,7 +18,6 @@ router.get("/", async (req, res) => {
   let requestType;
   
   if (lat && lon) {
-    // Use coordinates if provided
     const latitude = parseFloat(lat);
     const longitude = parseFloat(lon);
     

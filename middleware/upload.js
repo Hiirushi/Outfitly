@@ -73,7 +73,6 @@ const uploadToS3WithBgRemoval = async (req, res, next) => {
       } catch (bgError) {
         console.error('Background removal failed, using original image:', bgError.message);
         // Continue with original image if background removal fails
-        // You can choose to return an error instead if bg removal is mandatory
       }
     }
 

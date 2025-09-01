@@ -40,7 +40,6 @@ const itemSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  // Proper reference to User model
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User', // References the User model

@@ -121,11 +121,9 @@ const login = async (req, res) => {
   }
 };
 
-// Logout user (client-side token removal, but we can track it server-side if needed)
+// Logout user (client-side token removal)
 const logout = async (req, res) => {
   try {
-    // In a more complex setup, you might want to blacklist the token
-    // For now, we'll just send a success response
     res.status(200).json({
       success: true,
       message: "Logged out successfully",
@@ -252,8 +250,7 @@ const changePassword = async (req, res) => {
 // Refresh token
 const refreshToken = async (req, res) => {
   try {
-    // This would typically involve checking a refresh token
-    // For simplicity, we'll just generate a new token if the user is authenticated
+    // Generate a new token if the user is authenticated
     const { userId } = req.body;
 
     if (!userId) {
