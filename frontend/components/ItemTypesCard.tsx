@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -36,42 +36,51 @@ const ItemTypeCard: React.FC<ItemTypeCardProps> = ({ category, itemCount, imageU
 
   return (
     <TouchableOpacity
-      className={`relative overflow-hidden rounded-xl bg-white drop-shadow-sm mb-3 ${isPressed ? 'transform -translate-y-1' : ''}`}
+      style={[
+        styles.container,
+        isPressed ? styles.containerPressed : null,
+        { elevation: isPressed ? 6 : 2 }
+      ]}
       onPress={onPress}
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
       activeOpacity={0.95}
-      style={{
-
-        elevation: isPressed ? 6 : 2,
-      }}
     >
       {/* Gradient overlay */}
       <LinearGradient
         colors={[...selectedGradient, 'transparent'] as const}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
-        className={`absolute rounded-xl inset-0 ${isPressed ? 'opacity-20' : 'opacity-10'}`}
+        style={[
+          styles.gradientOverlay,
+          { opacity: isPressed ? 0.2 : 0.1 }
+        ]}
       />
 
-      <View className="relative p-3 flex-row items-center space-x-4">
+      <View style={styles.content}>
         {/* Image container */}
-        <View className="relative w-12 h-12 rounded-xl overflow-hidden drop-shadow-sm">
+        <View style={styles.imageContainer}>
           {imageUrl ? (
             <>
               <Image
                 source={typeof imageUrl === 'string' ? { uri: imageUrl } : imageUrl}
-                className={`w-full h-full ${isPressed ? 'transform scale-110' : ''}`}
+                style={[
+                  styles.image,
+                  isPressed ? styles.imagePressed : null
+                ]}
                 resizeMode="cover"
               />
               {/* Overlay for better contrast */}
-              <View className={`absolute inset-0 ${isPressed ? 'bg-black/0' : 'bg-black/10'}`} />
+              <View style={[
+                styles.imageOverlay,
+                { backgroundColor: isPressed ? 'rgba(0, 0, 0, 0)' : 'rgba(0, 0, 0, 0.1)' }
+              ]} />
             </>
           ) : (
-            <View className="w-full h-full bg-gray-200 items-center justify-center">
+            <View style={styles.placeholderContainer}>
               <LinearGradient
                 colors={selectedGradient}
-                className="w-full h-full items-center justify-center"
+                style={styles.placeholderGradient}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
               >
@@ -82,17 +91,18 @@ const ItemTypeCard: React.FC<ItemTypeCardProps> = ({ category, itemCount, imageU
         </View>
 
         {/* Content */}
-        <View className="flex-1 min-w-0">
-          <Text className="text-gray-900 font-semibold text-lg leading-tight mb-1">{category}</Text>
-          <Text className="text-gray-500 text-sm">
+        <View style={styles.textContainer}>
+          <Text style={styles.categoryText}>{category}</Text>
+          <Text style={styles.itemCountText}>
             {itemCount} {itemCount === 1 ? 'item' : 'items'}
           </Text>
         </View>
 
         {/* Arrow indicator */}
-        <View
-          className={`w-8 h-8 rounded-full ${isPressed ? 'bg-gray-100' : 'bg-gray-50'} items-center justify-center`}
-        >
+        <View style={[
+          styles.arrowContainer,
+          { backgroundColor: isPressed ? '#f3f4f6' : '#f9fafb' }
+        ]}>
           <Ionicons
             name="chevron-forward"
             size={16}
@@ -106,5 +116,124 @@ const ItemTypeCard: React.FC<ItemTypeCardProps> = ({ category, itemCount, imageU
     </TouchableOpacity>
   );
 };
+
+const styles = StyleSheet.create({
+  // Main Container
+  container: {
+    position: 'relative',
+    overflow: 'hidden',
+    borderRadius: 12,
+    backgroundColor: '#ffffff',
+    marginBottom: 12,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  containerPressed: {
+    transform: [{ translateY: -4 }],
+  },
+
+  // Gradient Overlay
+  gradientOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 12,
+  },
+
+  // Content Container
+  content: {
+    position: 'relative',
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+
+  // Image Container
+  imageContainer: {
+    position: 'relative',
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  // Image Styles
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  imagePressed: {
+    transform: [{ scale: 1.1 }],
+  },
+
+  // Image Overlay
+  imageOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+
+  // Placeholder (when no image)
+  placeholderContainer: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#e5e7eb',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  placeholderGradient: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  // Text Container
+  textContainer: {
+    flex: 1,
+    minWidth: 0, // Equivalent to min-w-0 in Tailwind
+  },
+
+  // Text Styles
+  categoryText: {
+    color: '#111827',
+    fontWeight: '600',
+    fontSize: 18,
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  itemCountText: {
+    color: '#6b7280',
+    fontSize: 14,
+  },
+
+  // Arrow Container
+  arrowContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});
 
 export default ItemTypeCard;

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StatusBar } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StatusBar, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -23,7 +23,6 @@ interface Item {
   };
   createdAt: string;
   updatedAt: string;
-  usageCount?: number;
 }
 
 const ClosetType = () => {
@@ -78,8 +77,6 @@ const ClosetType = () => {
     { key: 'oldest', label: 'Old → New' },
     { key: 'name-asc', label: 'Name A → Z' },
     { key: 'name-desc', label: 'Name Z → A' },
-    { key: 'most-used', label: 'Most Used' },
-    { key: 'least-used', label: 'Least Used' },
   ];
 
   // Helper function to map color names to hex codes for display
@@ -191,10 +188,6 @@ const ClosetType = () => {
             return a.name.localeCompare(b.name);
           case 'name-desc':
             return b.name.localeCompare(a.name);
-          case 'most-used':
-            return (b.usageCount || 0) - (a.usageCount || 0);
-          case 'least-used':
-            return (a.usageCount || 0) - (b.usageCount || 0);
           default:
             return 0;
         }
@@ -226,14 +219,14 @@ const ClosetType = () => {
   // Check authentication first
   if (!isAuthenticated) {
     return (
-      <View className="flex-1 bg-gray-100">
-        <View className="flex-1 justify-center items-center p-5">
-          <Text className="text-base text-red-500 text-center mb-5">Please log in to view your items</Text>
+      <View style={styles.container}>
+        <View style={styles.centerContainer}>
+          <Text style={styles.authErrorText}>Please log in to view your items</Text>
           <TouchableOpacity
-            className="bg-pink-500 px-5 py-2.5 rounded-lg"
+            style={styles.loginButton}
             onPress={() => router.replace('/auth/login')}
           >
-            <Text className="text-white text-base font-semibold">Go to Login</Text>
+            <Text style={styles.loginButtonText}>Go to Login</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -243,10 +236,10 @@ const ClosetType = () => {
   // Loading state
   if (loading) {
     return (
-      <View className="flex-1 bg-gray-100">
-        <View className="flex-1 justify-center items-center">
+      <View style={styles.container}>
+        <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#EC4899" />
-          <Text className="mt-2.5 text-base text-gray-600">Loading {typeName || 'items'}...</Text>
+          <Text style={styles.loadingText}>Loading {typeName || 'items'}...</Text>
         </View>
       </View>
     );
@@ -255,11 +248,11 @@ const ClosetType = () => {
   // Error state
   if (error) {
     return (
-      <View className="flex-1 bg-gray-100">
-        <View className="flex-1 justify-center items-center p-5">
-          <Text className="text-base text-red-500 text-center mb-5">{error}</Text>
-          <TouchableOpacity className="bg-pink-500 px-5 py-2.5 rounded-lg" onPress={fetchItems}>
-            <Text className="text-white text-base font-semibold">Retry</Text>
+      <View style={styles.container}>
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchItems}>
+            <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -268,13 +261,12 @@ const ClosetType = () => {
 
   // Main render
   return (
-    <View className="flex-1 bg-gray-100">
+    <View style={styles.container}>
       {/* Header with back button and filter clear*/}
-      <View className="flex-col gap-y-3 bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 py-3 px-4 drop-shadow-sm rounded-b-3xl">
-        <View className="flex-row items-center justify-between">
+      <View style={styles.headerContainer}>
+        <View style={styles.headerTopRow}>
           <TouchableOpacity
-            className="size-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center"
-            style={{ marginTop: 20 }}
+            style={styles.backButton}
             onPress={() => router.back()}
           >
             <Ionicons name="arrow-back" size={16} color="#333" />
@@ -282,70 +274,73 @@ const ClosetType = () => {
 
           {/* Active filters indicator */}
           {(selectedColor || selectedMaterial || selectedSort) && (
-            <TouchableOpacity className="rounded-xl px-3 py-2 bg-white" onPress={clearFilters}>
-              <Text className="text-pink-800 font-semibold text-xs">Clear All</Text>
+            <TouchableOpacity style={styles.clearAllButton} onPress={clearFilters}>
+              <Text style={styles.clearAllText}>Clear All</Text>
             </TouchableOpacity>
           )}
         </View>
 
-        <View className="">
-          <Text className="text-3xl font-bold text-gray-900 mb-1">{typeName || 'Category'}</Text>
-          <Text className="text-sm text-gray-600">
+        <View>
+          <Text style={styles.headerTitle}>{typeName || 'Category'}</Text>
+          <Text style={styles.headerSubtitle}>
             {displayedItems.length} {displayedItems.length === 1 ? 'item' : 'items'} in your collection
           </Text>
         </View>
 
         {/* Filter and Sort bar */}
-        <View className="flex-row items-center justify-between py-3">
+        <View style={styles.filterSortBar}>
           <TouchableOpacity
-            className="bg-pink-500 px-4 py-2 rounded-xl flex-row items-center"
+            style={styles.filterButton}
             onPress={() => setFilterVisible(!filterVisible)}
           >
             <Ionicons name="filter" size={16} color="white" style={{ marginRight: 6 }} />
-            <Text className="text-white font-semibold text-sm">Filter & Sort</Text>
+            <Text style={styles.filterButtonText}>Filter & Sort</Text>
           </TouchableOpacity>
 
-          <View className="flex-row items-center">
-            <Text className="text-sm text-gray-600 mr-2">Sort by:</Text>
-            <Text className="text-sm font-medium text-gray-900">
+          <View style={styles.sortIndicator}>
+            <Text style={styles.sortLabel}>Sort by:</Text>
+            <Text style={styles.sortValue}>
               {selectedSort ? SORT_OPTIONS.find((opt) => opt.key === selectedSort)?.label : 'Recently Added'}
             </Text>
           </View>
         </View>
       </View>
 
-      {/* Title and item count */}
-
       {/* Filter panel */}
       {filterVisible && (
-        <View className="bg-white mx-5 my-2 border border-gray-300 rounded-xl p-4 shadow-lg">
+        <View style={styles.filterPanel}>
           {/* Color filter */}
-          <Text className="text-base font-bold text-gray-800 mb-2">Color</Text>
-          <View className="flex-row flex-wrap">
+          <Text style={styles.filterSectionTitle}>Color</Text>
+          <View style={styles.colorFilterRow}>
             {COLOR_OPTIONS.map((color) => (
               <TouchableOpacity
                 key={color}
-                className={`w-8 h-8 rounded-full border-2 mr-3 mb-2 ${
-                  selectedColor === color ? 'border-pink-500 border-[3px]' : 'border-gray-300'
-                }`}
-                style={{ backgroundColor: mapColorNameToHex(color) }}
+                style={[
+                  styles.colorOption,
+                  { backgroundColor: mapColorNameToHex(color) },
+                  selectedColor === color ? styles.selectedColorOption : styles.unselectedColorOption
+                ]}
                 onPress={() => setSelectedColor(selectedColor === color ? null : color)}
               />
             ))}
           </View>
 
           {/* Material filter */}
-          <Text className="text-base font-bold text-gray-800 mb-2 mt-4">Material</Text>
-          <View className="flex-row flex-wrap">
+          <Text style={[styles.filterSectionTitle, styles.materialTitle]}>Material</Text>
+          <View style={styles.materialFilterRow}>
             {MATERIAL_OPTIONS.map((material) => (
               <TouchableOpacity
                 key={material}
-                className={`px-3 py-2 rounded-full mr-2 mb-2 ${
-                  selectedMaterial === material ? 'bg-pink-500' : 'bg-gray-100'
-                }`}
+                style={[
+                  styles.materialOption,
+                  selectedMaterial === material ? styles.selectedMaterialOption : styles.unselectedMaterialOption
+                ]}
                 onPress={() => setSelectedMaterial(selectedMaterial === material ? null : material)}
               >
-                <Text className={`text-sm ${selectedMaterial === material ? 'text-white' : 'text-gray-800'}`}>
+                <Text style={[
+                  styles.materialOptionText,
+                  selectedMaterial === material ? styles.selectedMaterialText : styles.unselectedMaterialText
+                ]}>
                   {material}
                 </Text>
               </TouchableOpacity>
@@ -353,17 +348,21 @@ const ClosetType = () => {
           </View>
 
           {/* Sort options */}
-          <Text className="text-base font-bold text-gray-800 mb-2 mt-4">Sort</Text>
-          <View className="flex-row flex-wrap">
+          <Text style={[styles.filterSectionTitle, styles.sortTitle]}>Sort</Text>
+          <View style={styles.sortFilterRow}>
             {SORT_OPTIONS.map((sortOption) => (
               <TouchableOpacity
                 key={sortOption.key}
-                className={`px-3 py-2 rounded-full mr-2 mb-2 ${
-                  selectedSort === sortOption.key ? 'bg-pink-500' : 'bg-gray-100'
-                }`}
+                style={[
+                  styles.sortOption,
+                  selectedSort === sortOption.key ? styles.selectedSortOption : styles.unselectedSortOption
+                ]}
                 onPress={() => setSelectedSort(selectedSort === sortOption.key ? null : sortOption.key)}
               >
-                <Text className={`text-sm ${selectedSort === sortOption.key ? 'text-white' : 'text-gray-800'}`}>
+                <Text style={[
+                  styles.sortOptionText,
+                  selectedSort === sortOption.key ? styles.selectedSortText : styles.unselectedSortText
+                ]}>
                   {sortOption.label}
                 </Text>
               </TouchableOpacity>
@@ -371,23 +370,23 @@ const ClosetType = () => {
           </View>
 
           {/* Filter actions */}
-          <View className="flex-row justify-end mt-4 pt-4 border-t border-gray-200">
-            <TouchableOpacity className="px-4 py-2 mr-3" onPress={clearFilters}>
-              <Text className="text-pink-500 font-semibold">Clear</Text>
+          <View style={styles.filterActions}>
+            <TouchableOpacity style={styles.clearFiltersButton} onPress={clearFilters}>
+              <Text style={styles.clearFiltersText}>Clear</Text>
             </TouchableOpacity>
-            <TouchableOpacity className="bg-pink-500 px-4 py-2 rounded-lg" onPress={() => setFilterVisible(false)}>
-              <Text className="text-white font-bold">Done</Text>
+            <TouchableOpacity style={styles.doneButton} onPress={() => setFilterVisible(false)}>
+              <Text style={styles.doneButtonText}>Done</Text>
             </TouchableOpacity>
           </View>
         </View>
       )}
 
       {/* Items list */}
-      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 20 }}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
         {displayedItems.length > 0 ? (
-          <View className="flex-row flex-wrap justify-between">
+          <View style={styles.itemsGrid}>
             {displayedItems.map((item: Item) => (
-              <TouchableOpacity key={item._id} className="w-[45%] mb-5" onPress={() => handlePress(item._id)}>
+              <TouchableOpacity key={item._id} style={styles.itemContainer} onPress={() => handlePress(item._id)}>
                 <ItemCard
                   color={item.color}
                   category={item.dressCode}
@@ -399,15 +398,15 @@ const ClosetType = () => {
             ))}
           </View>
         ) : (
-          <View className="flex-1 justify-center items-center py-10">
-            <Text className="text-lg text-gray-500 text-center mb-4">
+          <View style={styles.emptyStateContainer}>
+            <Text style={styles.emptyStateText}>
               {selectedColor || selectedMaterial || selectedSort
                 ? 'No items match your filters'
                 : `No ${typeName?.toString().toLowerCase()} items in your closet yet`}
             </Text>
             {(selectedColor || selectedMaterial || selectedSort) && (
-              <TouchableOpacity className="bg-pink-500 px-5 py-2.5 rounded-lg" onPress={clearFilters}>
-                <Text className="text-white text-base font-semibold">Clear Filters</Text>
+              <TouchableOpacity style={styles.clearFiltersEmptyButton} onPress={clearFilters}>
+                <Text style={styles.clearFiltersEmptyText}>Clear Filters</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -416,5 +415,348 @@ const ClosetType = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  // Main Container
+  container: {
+    flex: 1,
+    backgroundColor: '#f3f4f6',
+  },
+
+  // Center Container for loading/error states
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+
+  // Authentication Error
+  authErrorText: {
+    fontSize: 16,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  loginButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  loginButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // Loading State
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#6b7280',
+  },
+
+  // Error State
+  errorText: {
+    fontSize: 16,
+    color: '#ef4444',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+
+  // Header Container
+  headerContainer: {
+    flexDirection: 'column',
+    gap: 12,
+    backgroundColor: '#fdf2f8', // Light rose/pink background
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+
+  // Header Top Row
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  backButton: {
+    width: 32,
+    height: 32,
+    marginTop: 20,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  clearAllButton: {
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#ffffff',
+  },
+  clearAllText: {
+    color: '#9f1239',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+
+  // Header Title
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#111827',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#6b7280',
+  },
+
+  // Filter and Sort Bar
+  filterSortBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+  },
+  filterButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  filterButtonText: {
+    color: '#ffffff',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  sortIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sortLabel: {
+    fontSize: 14,
+    color: '#6b7280',
+    marginRight: 8,
+  },
+  sortValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#111827',
+  },
+
+  // Filter Panel
+  filterPanel: {
+    backgroundColor: '#ffffff',
+    marginHorizontal: 20,
+    marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+
+  // Filter Section Titles
+  filterSectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  materialTitle: {
+    marginTop: 16,
+  },
+  sortTitle: {
+    marginTop: 16,
+  },
+
+  // Color Filter
+  colorFilterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  colorOption: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 12,
+    marginBottom: 8,
+    borderWidth: 2,
+  },
+  selectedColorOption: {
+    borderColor: '#ec4899',
+    borderWidth: 3,
+  },
+  unselectedColorOption: {
+    borderColor: '#d1d5db',
+  },
+
+  // Material Filter
+  materialFilterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  materialOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  selectedMaterialOption: {
+    backgroundColor: '#ec4899',
+  },
+  unselectedMaterialOption: {
+    backgroundColor: '#f3f4f6',
+  },
+  materialOptionText: {
+    fontSize: 14,
+  },
+  selectedMaterialText: {
+    color: '#ffffff',
+  },
+  unselectedMaterialText: {
+    color: '#1f2937',
+  },
+
+  // Sort Filter
+  sortFilterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  sortOption: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  selectedSortOption: {
+    backgroundColor: '#ec4899',
+  },
+  unselectedSortOption: {
+    backgroundColor: '#f3f4f6',
+  },
+  sortOptionText: {
+    fontSize: 14,
+  },
+  selectedSortText: {
+    color: '#ffffff',
+  },
+  unselectedSortText: {
+    color: '#1f2937',
+  },
+
+  // Filter Actions
+  filterActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  clearFiltersButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 12,
+  },
+  clearFiltersText: {
+    color: '#ec4899',
+    fontWeight: '600',
+  },
+  doneButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  doneButtonText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+
+  // Scroll Container
+  scrollContainer: {
+    flexGrow: 1,
+    padding: 20,
+  },
+
+  // Items Grid
+  itemsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  itemContainer: {
+    width: '45%',
+    marginBottom: 20,
+  },
+
+  // Empty State
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 40,
+  },
+  emptyStateText: {
+    fontSize: 18,
+    color: '#6b7280',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  clearFiltersEmptyButton: {
+    backgroundColor: '#ec4899',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 8,
+  },
+  clearFiltersEmptyText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});
 
 export default ClosetType;
