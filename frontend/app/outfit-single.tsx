@@ -219,9 +219,25 @@ const OutfitSingle = () => {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* Back button at the top */}
-      <View style={styles.headerRowWithBack}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={32} color="#222" />
+      <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', marginBottom: 8 }}>
+        <TouchableOpacity
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            backgroundColor: 'rgba(255,255,255,0.8)',
+            marginTop: 20,
+            justifyContent: 'center',
+            alignItems: 'center',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.15,
+            shadowRadius: 2,
+            elevation: 2,
+          }}
+          onPress={() => router.back()}
+        >
+          <Ionicons name="arrow-back" size={16} color="#333" />
         </TouchableOpacity>
       </View>
       <Text style={styles.name}>{outfit.name}</Text>

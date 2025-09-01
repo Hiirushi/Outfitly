@@ -94,6 +94,7 @@ const ClosetSingle = () => {
           <View className="flex-row items-center justify-between py-3">
             <TouchableOpacity
               className="size-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center"
+              style={{ marginTop: 20 }}
               onPress={() => router.back()}
             >
               <Ionicons name="arrow-back" size={16} color="#333" />

@@ -264,9 +264,10 @@ const ClosetType = () => {
     <View className="flex-1 bg-gray-100">
       {/* Header with back button and filter clear*/}
       <View className="flex-col gap-y-3 bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 py-3 px-4 drop-shadow-sm rounded-b-3xl">
-        <View className='flex-row items-center justify-between'>
+        <View className="flex-row items-center justify-between">
           <TouchableOpacity
             className="size-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center"
+            style={{ marginTop: 20 }}
             onPress={() => router.back()}
           >
             <Ionicons name="arrow-back" size={16} color="#333" />
