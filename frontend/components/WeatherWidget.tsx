@@ -15,7 +15,8 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 
 // Use environment variable WEATHER_API_BASE when available; fallback to localhost for development
-const API_BASE = (process.env && process.env.WEATHER_API_BASE) || 'http://192.168.8.124:3000';
+const API_BASE = (process.env && process.env.WEATHER_API_BASE) || 'http://10.0.2.2:3000';
+// const API_BASE = (process.env && process.env.WEATHER_API_BASE) || 'http://localhost:3000';
 
 interface LocationCoords {
   latitude: number;
@@ -135,6 +136,7 @@ const WeatherWidget: React.FC = () => {
     setLoading(false);
   };
 
+  // fresh GPS and weather
   const refreshLocation = async () => {
     console.log('=== FORCING FRESH GPS ===');
     startWatching(); // start live updates

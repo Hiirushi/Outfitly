@@ -30,6 +30,7 @@ const ItemCard: React.FC<ItemCardProps> = ({
     router.push(`/closet-single?id=${itemId}`);
   };
 
+  // maps color names to hex values
   const getColorValue = (colorName: string) => {
     const colorMap: { [key: string]: string } = {
       red: '#ef4444',

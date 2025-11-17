@@ -19,13 +19,19 @@ app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
 // CORS configuration for React Native
 app.use(cors({
-  origin: ["http://localhost:8081", "http://192.168.8.124:19006", "exp://192.168.8.124:19000"], // Expo dev server URLs
+origin: [
+    "http://localhost:8081",
+    "http://localhost:19006",
+    "http://10.0.2.2:19006", 
+    "exp://localhost:19000",
+    "exp://10.0.2.2:19000" 
+  ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Error handling middleware for JSON parsing
+// Custom middleware to catch JSON parse errors
 app.use((error, req, res, next) => {
   if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
     return res.status(400).json({
@@ -44,7 +50,7 @@ app.use("/outfits", outfitRoutes);
 app.use("/itemType", itemTypeRoutes);
 app.use("/api/weather", weatherRoutes);
 
-// Basic route
+// Basic route to check if server is running and what endpoints are available
 app.get("/", (req, res) => {
   res.json({
     success: true,

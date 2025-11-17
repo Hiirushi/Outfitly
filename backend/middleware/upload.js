@@ -58,9 +58,9 @@ const uploadToS3WithBgRemoval = async (req, res, next) => {
   }
 
   try {
-    let processedBuffer = req.file.buffer;
-    let contentType = req.file.mimetype;
-    
+    let processedBuffer = req.file.buffer; // original image buffer
+    let contentType = req.file.mimetype; // file type
+
     // Check if background removal is requested (optional parameter)
     const removeBg = req.body.removeBg === 'true' || req.query.removeBg === 'true';
     

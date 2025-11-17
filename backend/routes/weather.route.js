@@ -14,8 +14,8 @@ router.get("/", async (req, res) => {
   }
 
   // Determine query parameter for WeatherAPI
-  let queryParam;
-  let requestType;
+  let queryParam; // what to send to WeatherAPI
+  let requestType; // type of request for logging
   
   if (lat && lon) {
     const latitude = parseFloat(lat);
@@ -79,6 +79,7 @@ router.get("/", async (req, res) => {
       }
     );
 
+    // performance measurement
     const endTime = Date.now();
     const responseTime = endTime - startTime;
 

@@ -225,6 +225,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     token,
     isLoading,
+    // true if both user and token are set
     isAuthenticated: !!user && !!token,
     login,
     register,

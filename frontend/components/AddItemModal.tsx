@@ -219,12 +219,14 @@ export const AddItemModal: React.FC<AddItemModalProps> = ({ visible, onClose, on
         const asset = result.assets[0];
         console.log('Selected image URI:', asset.uri);
 
+        //converts blob to file
         if (Platform.OS === 'web') {
           setFormData((prev) => ({
             ...prev,
             image: asset.uri,
           }));
         } else {
+          // Mobile platform uses URI directly
           if (asset.uri.startsWith('data:')) {
             try {
               const filename = `image_${Date.now()}.jpg`;

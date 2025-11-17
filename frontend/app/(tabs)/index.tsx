@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, FlatList, ActivityIndicator, Text, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+import {
+  View,
+  FlatList,
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  Modal,
+  TextInput,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import OutfitTypeCard from '../../components/ItemTypesCard';
 import { itemsAPI } from '../../services/api';
@@ -35,6 +45,9 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [isAddModalVisible, setIsAddModalVisible] = useState<boolean>(false);
   const [totalItems, setTotalItems] = useState<number>(0);
+  const [showCategoryMenu, setShowCategoryMenu] = useState<boolean>(false);
+  const [isAddCategoryModalVisible, setIsAddCategoryModalVisible] = useState<boolean>(false);
+  const [newCategoryName, setNewCategoryName] = useState<string>('');
 
   const fetchCategoriesWithItems = async (): Promise<void> => {
     try {
@@ -177,6 +190,36 @@ export default function Home() {
     router.push(`/closet-type?typeId=${categoryId}&typeName=${encodeURIComponent(categoryName)}`);
   };
 
+  const handleOpenCategoryMenu = () => {
+    setShowCategoryMenu((s) => !s);
+  };
+
+  const handleOpenAddCategory = () => {
+    setShowCategoryMenu(false);
+    setIsAddCategoryModalVisible(true);
+  };
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) {
+      Alert.alert('Validation', 'Category name cannot be empty.');
+      return;
+    }
+
+    try {
+      const payload = { name: newCategoryName.trim() };
+      const resp = await itemTypesAPI.createType(payload);
+      console.log('Created category:', resp);
+      setIsAddCategoryModalVisible(false);
+      setNewCategoryName('');
+      fetchCategoriesWithItems();
+      Alert.alert('Success', 'Category created successfully.');
+    } catch (err: any) {
+      console.error('Error creating category:', err);
+      const message = err.response?.data?.message || err.message || 'Failed to create category';
+      Alert.alert('Error', message);
+    }
+  };
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning!';
@@ -264,9 +307,22 @@ export default function Home() {
   return (
     <View style={styles.mainContainer}>
       {renderHeader()}
-      
+
       <View style={styles.contentContainer}>
-        <Text style={styles.categoriesTitle}>Categories</Text>
+        <View style={styles.categoriesHeader}>
+          <Text style={styles.categoriesTitle}>Categories</Text>
+          <TouchableOpacity onPress={handleOpenCategoryMenu} style={styles.menuButton}>
+            <Ionicons name="ellipsis-vertical" size={20} color="#374151" />
+          </TouchableOpacity>
+        </View>
+
+        {showCategoryMenu && (
+          <View style={styles.menuContainer}>
+            <TouchableOpacity style={styles.menuItem} onPress={handleOpenAddCategory}>
+              <Text style={styles.menuItemText}>Add category</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <FlatList
           data={categories}
@@ -286,15 +342,34 @@ export default function Home() {
         />
       </View>
 
-      <TouchableOpacity
-        style={styles.addButton}
-        onPress={handleAddItem}
-        activeOpacity={0.8}
-      >
+      <TouchableOpacity style={styles.addButton} onPress={handleAddItem} activeOpacity={0.8}>
         <Ionicons name="add" size={28} color="#FFFFFF" />
       </TouchableOpacity>
 
       <AddItemModal visible={isAddModalVisible} onClose={handleCloseModal} onItemAdded={handleItemAdded} />
+
+      <Modal visible={isAddCategoryModalVisible} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.addCategoryModal}>
+            <Text style={styles.modalTitle}>Add Category</Text>
+            <TextInput
+              value={newCategoryName}
+              onChangeText={setNewCategoryName}
+              placeholder="Category name"
+              style={styles.input}
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButtonCancel} onPress={() => setIsAddCategoryModalVisible(false)}>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButtonCreate} onPress={handleCreateCategory}>
+                <Text style={[styles.modalButtonText, { color: '#fff' }]}>Create</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -499,7 +574,7 @@ const styles = StyleSheet.create({
   addButton: {
     position: 'absolute',
     bottom: 130, // Increased from 16 to ensure visibility
-    right: 20,  // Increased from 16 for better visibility
+    right: 20, // Increased from 16 for better visibility
     width: 56,
     height: 56,
     backgroundColor: '#ec4899', // Pink gradient approximation
@@ -515,5 +590,89 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 10,
     zIndex: 1000,
+  },
+  // Categories header row
+  categoriesHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+    position: 'relative',
+  },
+  menuButton: {
+    padding: 8,
+  },
+  menuContainer: {
+    position: 'absolute',
+    right: 8,
+    top: '8%',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 6,
+    zIndex: 2000,
+  },
+  menuItem: {
+    paddingVertical: 8,
+  },
+  menuItemText: {
+    color: '#374151',
+    fontSize: 14,
+  },
+
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  addCategoryModal: {
+    width: '86%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#111827',
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+  },
+  modalButtonCancel: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  modalButtonCreate: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: '#ec4899',
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: '#111827',
+    fontWeight: '600',
   },
 });
